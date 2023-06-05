@@ -36,41 +36,53 @@ func updMem(res http.ResponseWriter, req *http.Request) {
 	if memtype == "gauge" {
 		meaning, err := strconv.ParseFloat(smeaning, 64)
 		if err != nil {
-			fmt.Print("BadRequest-meaning\n")
+			fmt.Println("BadRequest-meaning")
 			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if name == "" {
+			fmt.Println("No name")
+			res.WriteHeader(http.StatusNotFound)
 			return
 		}
 		addmem := MemBase.Mem[name]
 		addmem.gauge = meaning
 		MemBase.Mem[name] = addmem
-		fmt.Print(MemBase)
+		fmt.Println(MemBase)
 		res.WriteHeader(http.StatusOK)
 		return
 
 	} else if memtype == "counter" {
 		meaning, err := strconv.ParseInt(smeaning, 10, 64)
 		if err != nil {
-			fmt.Print("BadRequest-meaning\n")
+			fmt.Println("BadRequest-meaning")
 			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+		if name == "" {
+			fmt.Println("No name")
+			res.WriteHeader(http.StatusNotFound)
 			return
 		}
 		addmem := MemBase.Mem[name]
 		addmem.counter += meaning
 		MemBase.Mem[name] = addmem
-		fmt.Print(MemBase)
+		fmt.Println(MemBase)
 		res.WriteHeader(http.StatusOK)
 		return
 
 	} else {
-		fmt.Print("BadRequest-type\n")
+		fmt.Println("BadRequest-type")
 		res.WriteHeader(http.StatusBadRequest)
 		return
 	}
 }
 
-func main() {
+func init() {
 	MemBase.Mem = make(map[string]mem)
+}
 
+func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/update/{memtype}/{name}/{meaning}", updMem)
 	r.HandleFunc("/update/{memtype}/{name}/{meaning}/", updMem)
