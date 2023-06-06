@@ -13,6 +13,8 @@ import (
 )
 
 const servAdr string = "http://localhost:8080/update/"
+const pollInterval time.Duration = 2 * time.Second
+const reportInterval time.Duration = 10 * time.Second
 
 type gauge float64
 type counter int64
@@ -113,19 +115,22 @@ func main() {
 	MemBase.MemGauge = make(map[string]gauge)
 	MemBase.MemCounter = make(map[string]counter)
 	var err error
+	var time_t time.Duration
 	for {
-		for i := 0; i < 5; i++ {
-			err = collectMems(&MemBase)
+		err = collectMems(&MemBase)
+		if err != nil {
+			fmt.Println(err)
+			//return err
+		}
+		time.Sleep(pollInterval)
+		time_t += pollInterval
+		if time_t >= reportInterval {
+			time_t = 0
+			err = sendMems(MemBase)
 			if err != nil {
 				fmt.Println(err)
 				//return err
 			}
-			time.Sleep(2 * time.Second)
-		}
-		err = sendMems(MemBase)
-		if err != nil {
-			fmt.Println(err)
-			//return err
 		}
 	}
 }
