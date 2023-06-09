@@ -1,6 +1,7 @@
 package main
 
 import (
+	s "metrics/internal/storage"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -23,12 +24,34 @@ func TestCollectMems(t *testing.T) {
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			var mem MemStorage
-			mem.MemGauge = make(map[string]gauge)
-			mem.MemCounter = make(map[string]counter)
+			mem := s.NewStorage()
 			require.Equal(t, test.wantErr, collectMems(&mem))
 			assert.Equal(t, test.wantLenG, len(mem.MemGauge))
 			assert.Equal(t, test.wantLenC, len(mem.MemCounter))
+		})
+	}
+}
+
+func TestSend(t *testing.T) {
+	tests := []struct {
+		name    string
+		URL     string
+		wantErr error
+	}{
+		{
+			name:    "positive case",
+			URL:     "http://localhost:8080/update/",
+			wantErr: nil,
+		},
+		{
+			name:    "negative case",
+			URL:     "/update/",
+			wantErr: nil,
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			assert.Equal(t, test.wantErr, send(test.URL))
 		})
 	}
 }

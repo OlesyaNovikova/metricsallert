@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestUpdMem(t *testing.T) {
+func TestUpdateMem(t *testing.T) {
 
 	// описываем набор данных: метод запроса, ожидаемый код ответа, ожидаемое тело
 	testCases := []struct {
@@ -34,7 +34,7 @@ func TestUpdMem(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			router := mux.NewRouter()
-			router.HandleFunc("/update/{memtype}/{name}/{meaning}", updMem)
+			router.HandleFunc("/update/{memtype}/{name}/{meaning}", updateMem)
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, tc.expectedCode, w.Code, "Код ответа не совпадает с ожидаемым")
