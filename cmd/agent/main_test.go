@@ -1,8 +1,9 @@
 package main
 
 import (
-	s "metrics/internal/storage"
 	"testing"
+
+	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

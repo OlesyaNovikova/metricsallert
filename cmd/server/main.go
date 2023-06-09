@@ -1,9 +1,11 @@
 package main
 
 import (
-	s "metricsallert/internal/storage"
+	//s "internal/storage"
+
 	"net/http"
 
+	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 	chi "github.com/go-chi/chi/v5"
 )
 

@@ -9,17 +9,16 @@ import (
 )
 
 func updateMem(res http.ResponseWriter, req *http.Request) {
-	fmt.Print("Run updMem:\n")
+	fmt.Print("Run updateMem:\n")
 	if req.Method != http.MethodPost {
 		fmt.Print("Only POST requests are allowed!\n")
 		http.Error(res, "Only POST requests are allowed!", http.StatusMethodNotAllowed)
 		return
 	}
 
-	vars := chi.Vars(req)
-	memtype := vars["memtype"]
-	name := vars["name"]
-	value := vars["value"]
+	memtype := chi.URLParam(req, "memtype")
+	name := chi.URLParam(req, "name")
+	value := chi.URLParam(req, "value")
 
 	switch memtype {
 	case "gauge":
@@ -30,7 +29,6 @@ func updateMem(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 		MemBase.S.UpdateGauge(name, val)
-		fmt.Println(MemBase)
 		res.WriteHeader(http.StatusOK)
 		return
 
@@ -42,11 +40,9 @@ func updateMem(res http.ResponseWriter, req *http.Request) {
 			return
 		}
 		MemBase.S.UpdateCounter(name, val)
-		fmt.Println(MemBase)
 		res.WriteHeader(http.StatusOK)
 		return
 	}
-
 	fmt.Println("BadRequest-type")
 	res.WriteHeader(http.StatusBadRequest)
 	return
@@ -60,9 +56,8 @@ func getMem(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	vars := chi.Vars(req)
-	memtype := vars["memtype"]
-	name := vars["name"]
+	memtype := chi.URLParam(req, "memtype")
+	name := chi.URLParam(req, "name")
 
 	strValue, err := MemBase.S.GetString(name, memtype)
 

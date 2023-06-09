@@ -45,7 +45,7 @@ func (m *MemStorage) GetString(name, memtype string) (value string, err error) {
 		return "", nil
 
 	case "counter":
-		if val, ok := m.MemGauge[name]; ok {
+		if val, ok := m.MemCounter[name]; ok {
 			value = strconv.FormatInt(int64(val), 10)
 			return
 		}

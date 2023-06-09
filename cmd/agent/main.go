@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"io"
 	"math/rand"
-	s "metricsallert/internal/storage"
 	"net/http"
 	"os"
 	"runtime"
 	"strconv"
 	"time"
+
+	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 )
 
 const servAdr string = "http://localhost:8080/update/"
