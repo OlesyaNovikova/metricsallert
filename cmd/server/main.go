@@ -1,11 +1,10 @@
 package main
 
 import (
-	//s "internal/storage"
-
 	"net/http"
 
-	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
+	h "github.com/OlesyaNovikova/metricsallert/internal/server/handlers"
+	s "github.com/OlesyaNovikova/metricsallert/internal/storage"
 	chi "github.com/go-chi/chi/v5"
 )
 
@@ -31,9 +30,9 @@ func init() {
 
 func main() {
 	r := chi.NewRouter()
-	r.Post("/update/{memtype}/{name}/{value}", updateMem)
-	r.Get("/value/{memtype}/{name}", getMem)
-	r.Get("/", getAllMems)
+	r.Post("/update/{memtype}/{name}/{value}", h.updateMem)
+	r.Get("/value/{memtype}/{name}", h.getMem)
+	r.Get("/", h.getAllMems)
 
 	err := http.ListenAndServe(":8080", r)
 	if err != nil {

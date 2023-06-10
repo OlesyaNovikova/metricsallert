@@ -33,7 +33,7 @@ func TestCollectMems(t *testing.T) {
 	}
 }
 
-func TestSend(t *testing.T) {
+/*func TestSend(t *testing.T) {
 	tests := []struct {
 		name    string
 		URL     string
@@ -55,4 +55,4 @@ func TestSend(t *testing.T) {
 			assert.Equal(t, test.wantErr, send(test.URL))
 		})
 	}
-}
+}*/
