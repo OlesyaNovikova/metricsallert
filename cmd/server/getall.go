@@ -42,5 +42,5 @@ func getAllMems(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	res.Header().Set("Content-Type", "text/html")
-	res.WriteHeader(http.StatusOK)
+	//res.WriteHeader(http.StatusOK)
 }

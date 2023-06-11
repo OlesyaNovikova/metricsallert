@@ -39,7 +39,7 @@ func (m *MemStorage) GetString(name, memtype string) (value string, err error) {
 	switch memtype {
 	case "gauge":
 		if val, ok := m.MemGauge[name]; ok {
-			value = strconv.FormatFloat(float64(val), 'f', 5, 64)
+			value = strconv.FormatFloat(float64(val), 'f', 3, 64)
 			return
 		}
 		return "", nil

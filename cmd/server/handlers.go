@@ -45,7 +45,6 @@ func updateMem(res http.ResponseWriter, req *http.Request) {
 	}
 	fmt.Println("BadRequest-type")
 	res.WriteHeader(http.StatusBadRequest)
-	return
 }
 
 func getMem(res http.ResponseWriter, req *http.Request) {
