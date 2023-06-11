@@ -76,19 +76,3 @@ func getMem(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusOK)
 	res.Write([]byte(strValue))
 }
-
-func getAllMems(res http.ResponseWriter, req *http.Request) {
-	fmt.Print("Run getAllMems:\n")
-	if req.Method != http.MethodGet {
-		fmt.Print("Only GET requests are allowed!\n")
-		http.Error(res, "Only GET requests are allowed!", http.StatusMethodNotAllowed)
-		return
-	}
-	var str string
-	///////
-
-	///////
-	res.Header().Set("Content-Type", "text/plain")
-	res.WriteHeader(http.StatusOK)
-	res.Write([]byte(str))
-}

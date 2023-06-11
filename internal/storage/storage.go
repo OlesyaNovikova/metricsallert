@@ -55,6 +55,20 @@ func (m *MemStorage) GetString(name, memtype string) (value string, err error) {
 	return "", err
 }
 
+func (m *MemStorage) GetAll() map[string]string {
+
+	allMems := make(map[string]string)
+
+	for name := range m.MemGauge {
+		allMems[name], _ = m.GetString(name, "gauge")
+	}
+	for name := range m.MemCounter {
+		allMems[name], _ = m.GetString(name, "counter")
+	}
+	return allMems
+
+}
+
 func (m *MemStorage) Delete(name, memtype string) {
 
 	switch memtype {
@@ -71,6 +85,7 @@ type MemInterface interface {
 	UpdateGauge(string, float64)
 	UpdateCounter(string, int64)
 	GetString(name, memtype string) (value string, err error)
+	GetAll()map[string]string
 	Delete(name, memtype string)
 }
 */
