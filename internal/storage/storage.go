@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"strconv"
 )
 
 type gauge float64
@@ -38,17 +39,14 @@ func (m *MemStorage) GetString(name, memtype string) (value string, err error) {
 	switch memtype {
 	case "gauge":
 		if val, ok := m.MemGauge[name]; ok {
-			//value = strconv.FormatFloat(float64(val), 'f', 3, 64)
-			value = fmt.Sprint(float64(val))
-
+			value = strconv.FormatFloat(float64(val), 'f', -1, 64)
 			return
 		}
 		return "", nil
 
 	case "counter":
 		if val, ok := m.MemCounter[name]; ok {
-			//value = strconv.FormatInt(int64(val), 10)
-			value = fmt.Sprint(int64(val))
+			value = strconv.FormatInt(int64(val), 10)
 			return
 		}
 		return "", nil
