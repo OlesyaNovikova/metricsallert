@@ -13,8 +13,10 @@ var reportInterval time.Duration
 // parseFlags обрабатывает аргументы командной строки
 func parseFlags() {
 	flag.StringVar(&flagAddr, "a", "localhost:8080", "address and port to run server")
-	flag.DurationVar(&pollInterval, "p", 2*time.Second, "metric collection interval")
-	flag.DurationVar(&reportInterval, "r", 10*time.Second, "metrics sending interval")
+	p := flag.Int64("p", 2, "metric collection interval")
+	r := flag.Int64("r", 10, "metrics sending interval")
 	// парсим переданные серверу аргументы в зарегистрированные переменные
 	flag.Parse()
+	pollInterval = time.Duration(*p) * time.Second
+	reportInterval = time.Duration(*r) * time.Second
 }
