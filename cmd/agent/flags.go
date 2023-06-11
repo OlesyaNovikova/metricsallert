@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -23,8 +24,16 @@ func parseFlags() {
 		flagAddr = envAddr
 	}
 
-	if envR := os.Getenv("ADDRESS"); envR != "" {
-		r = strconv
+	if envR := os.Getenv("REPORT_INTERVAL"); envR != "" {
+		if rEnv, err := strconv.Atoi(envR); err == nil {
+			*r = int64(rEnv)
+		}
+	}
+
+	if envP := os.Getenv("REPORT_INTERVAL"); envP != "" {
+		if pEnv, err := strconv.Atoi(envP); err == nil {
+			*p = int64(pEnv)
+		}
 	}
 
 	pollInterval = time.Duration(*p) * time.Second
