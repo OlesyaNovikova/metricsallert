@@ -14,7 +14,7 @@ import (
 	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 )
 
-const servAdr string = "http://localhost:8080/update/"
+//const servAdr string = "http://localhost:8080/update/"
 
 func collectMems(Mem *s.MemStorage) error {
 	var rtm runtime.MemStats
@@ -80,7 +80,7 @@ func sendMems(mem s.MemStorage) error {
 	var err error
 	for name, val := range mem.MemGauge {
 		value := strconv.FormatFloat(float64(val), 'f', 5, 64)
-		str = fmt.Sprintf("%sgauge/%s/%s", servAdr, name, value)
+		str = fmt.Sprintf("%s/update/gauge/%s/%s", flagAddr, name, value)
 		fmt.Println(str)
 		err = send(str)
 		if err != nil {
@@ -90,7 +90,7 @@ func sendMems(mem s.MemStorage) error {
 	}
 	for name, val := range mem.MemCounter {
 		value := strconv.FormatInt(int64(val), 10)
-		str = fmt.Sprintf("%scounter/%s/%s", servAdr, name, value)
+		str = fmt.Sprintf("%s/update/counter/%s/%s", flagAddr, name, value)
 		fmt.Print(str)
 		err = send(str)
 		if err != nil {
