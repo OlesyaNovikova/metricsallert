@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"os"
 	"time"
 )
 
@@ -17,6 +18,15 @@ func parseFlags() {
 	r := flag.Int64("r", 10, "metrics sending interval")
 	// парсим переданные серверу аргументы в зарегистрированные переменные
 	flag.Parse()
+
+	if envAddr := os.Getenv("ADDRESS"); envAddr != "" {
+		flagAddr = envAddr
+	}
+
+	if envR := os.Getenv("ADDRESS"); envR != "" {
+		r = strconv
+	}
+
 	pollInterval = time.Duration(*p) * time.Second
 	reportInterval = time.Duration(*r) * time.Second
 }

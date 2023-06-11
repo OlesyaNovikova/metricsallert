@@ -35,7 +35,7 @@ func main() {
 	r.Get("/value/{memtype}/{name}", getMem)
 	r.Get("/", getAllMems)
 
-	err := http.ListenAndServe(flagRunAddr, r)
+	err := http.ListenAndServe(flagAddr, r)
 	if err != nil {
 		panic(err)
 	}
