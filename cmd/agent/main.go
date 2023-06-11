@@ -15,8 +15,6 @@ import (
 )
 
 const servAdr string = "http://localhost:8080/update/"
-const pollInterval time.Duration = 2 * time.Second
-const reportInterval time.Duration = 10 * time.Second
 
 func collectMems(Mem *s.MemStorage) error {
 	var rtm runtime.MemStats
@@ -104,6 +102,7 @@ func sendMems(mem s.MemStorage) error {
 }
 
 func main() {
+	parseFlags()
 	MemBase := s.NewStorage()
 	var err error
 	var timeT time.Duration
