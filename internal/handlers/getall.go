@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"fmt"
@@ -23,7 +23,7 @@ const tplStr = `<table>
 </tbody>
 </table>`
 
-func getAllMems(res http.ResponseWriter, req *http.Request) {
+func GetAllMems(res http.ResponseWriter, req *http.Request) {
 	fmt.Print("Run getAllMems:\n")
 	if req.Method != http.MethodGet {
 		fmt.Print("Only GET requests are allowed!\n")

@@ -1,4 +1,4 @@
-package main
+package handlers
 
 import (
 	"fmt"
@@ -8,7 +8,28 @@ import (
 	chi "github.com/go-chi/chi/v5"
 )
 
-func updateMem(res http.ResponseWriter, req *http.Request) {
+type MemInterface interface {
+	InitStorage()
+	UpdateGauge(string, float64)
+	UpdateCounter(string, int64)
+	GetString(name, memtype string) (value string, err error)
+	GetAll() map[string]string
+}
+
+type MemRepo struct {
+	S MemInterface
+}
+
+var MemBase MemRepo
+
+func NewMemRepo(Mem MemInterface) {
+	MemBase = MemRepo{
+		S: Mem,
+	}
+	MemBase.S.InitStorage()
+}
+
+func UpdateMem(res http.ResponseWriter, req *http.Request) {
 	fmt.Print("Run updateMem:\n")
 	if req.Method != http.MethodPost {
 		fmt.Print("Only POST requests are allowed!\n")
@@ -47,7 +68,7 @@ func updateMem(res http.ResponseWriter, req *http.Request) {
 	res.WriteHeader(http.StatusBadRequest)
 }
 
-func getMem(res http.ResponseWriter, req *http.Request) {
+func GetMem(res http.ResponseWriter, req *http.Request) {
 	fmt.Print("Run getMem:\n")
 	if req.Method != http.MethodGet {
 		fmt.Print("Only GET requests are allowed!\n")

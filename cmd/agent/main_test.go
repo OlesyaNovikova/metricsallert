@@ -33,26 +33,4 @@ func TestCollectMems(t *testing.T) {
 	}
 }
 
-/*func TestSend(t *testing.T) {
-	tests := []struct {
-		name    string
-		URL     string
-		wantErr error
-	}{
-		{
-			name:    "positive case",
-			URL:     "http://localhost:8080/update/",
-			wantErr: nil,
-		},
-		{
-			name:    "negative case",
-			URL:     "/update/",
-			wantErr: nil,
-		},
-	}
-	for _, test := range tests {
-		t.Run(test.name, func(t *testing.T) {
-			assert.Equal(t, test.wantErr, send(test.URL))
-		})
-	}
-}*/
+

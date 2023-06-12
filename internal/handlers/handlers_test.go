@@ -1,10 +1,11 @@
-package main
+package handlers
 
 import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
+	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 )
@@ -27,6 +28,8 @@ func TestUpdateMem(t *testing.T) {
 		{name: "Не задано имя метрики", method: http.MethodPost, target: "/update/gauge/", expectedCode: http.StatusNotFound, expectedBody: ""},
 	}
 
+	NewMemRepo(&s.MemStorage{})
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 
@@ -34,7 +37,7 @@ func TestUpdateMem(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			router := chi.NewRouter()
-			router.HandleFunc("/update/{memtype}/{name}/{value}", updateMem)
+			router.HandleFunc("/update/{memtype}/{name}/{value}", UpdateMem)
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, tc.expectedCode, w.Code, "Код ответа не совпадает с ожидаемым")

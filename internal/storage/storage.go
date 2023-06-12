@@ -3,7 +3,6 @@ package storage
 import (
 	"fmt"
 	"strconv"
-	"strings"
 )
 
 type gauge float64
@@ -40,9 +39,9 @@ func (m *MemStorage) GetString(name, memtype string) (value string, err error) {
 	switch memtype {
 	case "gauge":
 		if val, ok := m.MemGauge[name]; ok {
-			//value = strconv.FormatFloat(float64(val), 'f', -1, 64)
-			value = strconv.FormatFloat(float64(val), 'f', 5, 64)
-			value = strings.TrimRight(value, "0")
+			value = strconv.FormatFloat(float64(val), 'f', -1, 64)
+			//value = strconv.FormatFloat(float64(val), 'f', 5, 64)
+			//value = strings.TrimRight(value, "0")
 			return
 		}
 		return "", nil
