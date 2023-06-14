@@ -13,16 +13,11 @@ type MemStorage struct {
 	MemCounter map[string]counter
 }
 
-func NewStorage() (m MemStorage) {
+func NewStorage() MemStorage {
 	return MemStorage{
 		MemGauge:   make(map[string]gauge),
 		MemCounter: make(map[string]counter),
 	}
-}
-
-func (m *MemStorage) InitStorage() {
-	m.MemGauge = make(map[string]gauge)
-	m.MemCounter = make(map[string]counter)
 }
 
 func (m *MemStorage) UpdateGauge(name string, value float64) {
@@ -40,8 +35,6 @@ func (m *MemStorage) GetString(name, memtype string) (value string, err error) {
 	case "gauge":
 		if val, ok := m.MemGauge[name]; ok {
 			value = strconv.FormatFloat(float64(val), 'f', -1, 64)
-			//value = strconv.FormatFloat(float64(val), 'f', 5, 64)
-			//value = strings.TrimRight(value, "0")
 			return
 		}
 		return "", nil
@@ -68,7 +61,6 @@ func (m *MemStorage) GetAll() map[string]string {
 		allMems[name], _ = m.GetString(name, "counter")
 	}
 	return allMems
-
 }
 
 func (m *MemStorage) Delete(name, memtype string) {
@@ -80,14 +72,3 @@ func (m *MemStorage) Delete(name, memtype string) {
 		delete(m.MemCounter, name)
 	}
 }
-
-/*
-type MemInterface interface {
-	InitStorage()
-	UpdateGauge(string, float64)
-	UpdateCounter(string, int64)
-	GetString(name, memtype string) (value string, err error)
-	GetAll()map[string]string
-	Delete(name, memtype string)
-}
-*/

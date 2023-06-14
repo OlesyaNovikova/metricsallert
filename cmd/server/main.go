@@ -3,16 +3,18 @@ package main
 import (
 	"net/http"
 
+	chi "github.com/go-chi/chi/v5"
+
 	h "github.com/OlesyaNovikova/metricsallert.git/internal/handlers"
 	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
-	chi "github.com/go-chi/chi/v5"
 )
 
 func main() {
 
 	parseFlags()
 
-	h.NewMemRepo(&s.MemStorage{})
+	mem := s.NewStorage()
+	h.NewMemRepo(&mem)
 
 	r := chi.NewRouter()
 	r.Post("/update/{memtype}/{name}/{value}", h.UpdateMem)

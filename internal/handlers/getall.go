@@ -30,7 +30,7 @@ func GetAllMems(res http.ResponseWriter, req *http.Request) {
 		http.Error(res, "Only GET requests are allowed!", http.StatusMethodNotAllowed)
 		return
 	}
-	table := MemBase.S.GetAll()
+	table := memBase.S.GetAll()
 	tpl, err := template.New("table").Parse(tplStr)
 	if err != nil {
 		fmt.Println(err)
@@ -42,5 +42,4 @@ func GetAllMems(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	res.Header().Set("Content-Type", "text/html")
-	//res.WriteHeader(http.StatusOK)
 }

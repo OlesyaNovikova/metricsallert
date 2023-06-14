@@ -8,8 +8,7 @@ import (
 	chi "github.com/go-chi/chi/v5"
 )
 
-type MemInterface interface {
-	InitStorage()
+type MemDataBase interface {
 	UpdateGauge(string, float64)
 	UpdateCounter(string, int64)
 	GetString(name, memtype string) (value string, err error)
@@ -17,16 +16,15 @@ type MemInterface interface {
 }
 
 type MemRepo struct {
-	S MemInterface
+	S MemDataBase
 }
 
-var MemBase MemRepo
+var memBase MemRepo
 
-func NewMemRepo(Mem MemInterface) {
-	MemBase = MemRepo{
+func NewMemRepo(Mem MemDataBase) {
+	memBase = MemRepo{
 		S: Mem,
 	}
-	MemBase.S.InitStorage()
 }
 
 func UpdateMem(res http.ResponseWriter, req *http.Request) {
@@ -49,7 +47,7 @@ func UpdateMem(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		MemBase.S.UpdateGauge(name, val)
+		memBase.S.UpdateGauge(name, val)
 		res.WriteHeader(http.StatusOK)
 		return
 
@@ -60,7 +58,7 @@ func UpdateMem(res http.ResponseWriter, req *http.Request) {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		MemBase.S.UpdateCounter(name, val)
+		memBase.S.UpdateCounter(name, val)
 		res.WriteHeader(http.StatusOK)
 		return
 	}
@@ -79,7 +77,7 @@ func GetMem(res http.ResponseWriter, req *http.Request) {
 	memtype := chi.URLParam(req, "memtype")
 	name := chi.URLParam(req, "name")
 
-	strValue, err := MemBase.S.GetString(name, memtype)
+	strValue, err := memBase.S.GetString(name, memtype)
 
 	if err != nil {
 		fmt.Println("BadRequest-type")

@@ -3,10 +3,10 @@ package main
 import (
 	"testing"
 
-	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
-
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 )
 
 func TestCollectMems(t *testing.T) {
@@ -32,5 +32,3 @@ func TestCollectMems(t *testing.T) {
 		})
 	}
 }
-
-

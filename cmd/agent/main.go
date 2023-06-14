@@ -14,8 +14,6 @@ import (
 	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 )
 
-//const servAdr string = "http://localhost:8080/update/"
-
 func collectMems(Mem *s.MemStorage) error {
 	var rtm runtime.MemStats
 	runtime.ReadMemStats(&rtm)
@@ -49,7 +47,7 @@ func collectMems(Mem *s.MemStorage) error {
 	Mem.UpdateGauge("StackSys", float64(rtm.StackSys))
 	Mem.UpdateGauge("Sys", float64(rtm.Sys))
 	Mem.UpdateGauge("TotalAlloc", float64(rtm.TotalAlloc))
-	//
+
 	b, _ := json.Marshal(Mem)
 	fmt.Println(string(b))
 
@@ -80,13 +78,11 @@ func sendMems(mem s.MemStorage) error {
 	var err error
 	for name, val := range mem.MemGauge {
 		value := strconv.FormatFloat(float64(val), 'f', 5, 64)
-		//str = fmt.Sprintf("%s/update/gauge/%s/%s", flagAddr, name, value)
 		str = fmt.Sprintf("http://%s/update/gauge/%s/%s", flagAddr, name, value)
 		fmt.Println(str)
 		err = send(str)
 		if err != nil {
 			fmt.Println(err)
-			//return err
 		}
 	}
 	for name, val := range mem.MemCounter {
@@ -96,7 +92,6 @@ func sendMems(mem s.MemStorage) error {
 		err = send(str)
 		if err != nil {
 			fmt.Println(err)
-			//return err
 		}
 	}
 	return err
@@ -111,7 +106,6 @@ func main() {
 		err = collectMems(&MemBase)
 		if err != nil {
 			fmt.Println(err)
-			//return err
 		}
 		time.Sleep(pollInterval)
 		timeT += pollInterval
@@ -120,7 +114,6 @@ func main() {
 			err = sendMems(MemBase)
 			if err != nil {
 				fmt.Println(err)
-				//return err
 			}
 		}
 	}

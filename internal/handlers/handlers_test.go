@@ -5,9 +5,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 	chi "github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
+
+	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 )
 
 func TestUpdateMem(t *testing.T) {
