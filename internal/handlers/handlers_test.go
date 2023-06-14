@@ -29,7 +29,8 @@ func TestUpdateMem(t *testing.T) {
 		{name: "Не задано имя метрики", method: http.MethodPost, target: "/update/gauge/", expectedCode: http.StatusNotFound, expectedBody: ""},
 	}
 
-	NewMemRepo(&s.MemStorage{})
+	mem := s.NewStorage()
+	NewMemRepo(&mem)
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
