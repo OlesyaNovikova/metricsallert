@@ -39,7 +39,7 @@ func TestUpdateMem(t *testing.T) {
 			w := httptest.NewRecorder()
 
 			router := chi.NewRouter()
-			router.HandleFunc("/update/{memtype}/{name}/{value}", UpdateMem)
+			router.HandleFunc("/update/{memtype}/{name}/{value}", UpdateMem())
 			router.ServeHTTP(w, req)
 
 			assert.Equal(t, tc.expectedCode, w.Code, "Код ответа не совпадает с ожидаемым")

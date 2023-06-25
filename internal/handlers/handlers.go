@@ -27,7 +27,7 @@ func NewMemRepo(Mem MemDataBase) {
 	}
 }
 
-func UpdateMem() http.Handler {
+func UpdateMem() http.HandlerFunc {
 	fn := func(res http.ResponseWriter, req *http.Request) {
 
 		if req.Method != http.MethodPost {
@@ -69,7 +69,7 @@ func UpdateMem() http.Handler {
 	return http.HandlerFunc(fn)
 }
 
-func GetMem() http.Handler {
+func GetMem() http.HandlerFunc {
 	fn := func(res http.ResponseWriter, req *http.Request) {
 
 		if req.Method != http.MethodGet {

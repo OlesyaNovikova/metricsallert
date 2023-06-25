@@ -23,7 +23,7 @@ const tplStr = `<table>
 </tbody>
 </table>`
 
-func GetAllMems() http.Handler {
+func GetAllMems() http.HandlerFunc {
 	fn := func(res http.ResponseWriter, req *http.Request) {
 
 		if req.Method != http.MethodGet {
