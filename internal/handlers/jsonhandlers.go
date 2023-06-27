@@ -33,9 +33,19 @@ func UpdateMemJSON() http.HandlerFunc {
 
 		switch mem.MType {
 		case "gauge":
+			if mem.Value == nil {
+				fmt.Println("BadRequest-value")
+				res.WriteHeader(http.StatusBadRequest)
+				return
+			}
 			memBase.S.UpdateGauge(mem.ID, *mem.Value)
 			*mem.Value, err = memBase.S.GetGauge(mem.ID)
 		case "counter":
+			if mem.Delta == nil {
+				fmt.Println("BadRequest-value")
+				res.WriteHeader(http.StatusBadRequest)
+				return
+			}
 			memBase.S.UpdateCounter(mem.ID, *mem.Delta)
 			*mem.Delta, err = memBase.S.GetCounter(mem.ID)
 		default:
