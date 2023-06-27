@@ -129,24 +129,24 @@ func sendMemsJSON(mem s.MemStorage) error {
 
 	for name, val := range mem.MemGauge {
 		value := float64(val)
-		memJson := j.Metrics{
+		memJSON := j.Metrics{
 			ID:    name,
 			MType: "gauge",
 			Value: &value,
 		}
-		err = sendJSON(str, memJson)
+		err = sendJSON(str, memJSON)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
 	for name, val := range mem.MemCounter {
 		value := int64(val)
-		memJson := j.Metrics{
+		memJSON := j.Metrics{
 			ID:    name,
 			MType: "counter",
 			Delta: &value,
 		}
-		err = sendJSON(str, memJson)
+		err = sendJSON(str, memJSON)
 		if err != nil {
 			fmt.Println(err)
 		}

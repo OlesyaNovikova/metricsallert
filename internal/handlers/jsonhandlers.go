@@ -62,9 +62,9 @@ func UpdateMemJSON() http.HandlerFunc {
 func GetMemJSON() http.HandlerFunc {
 	fn := func(res http.ResponseWriter, req *http.Request) {
 
-		if req.Method != http.MethodGet {
-			fmt.Print("Only GET requests are allowed!\n")
-			http.Error(res, "Only GET requests are allowed!", http.StatusMethodNotAllowed)
+		if req.Method != http.MethodPost {
+			fmt.Print("Only POST requests are allowed!\n")
+			http.Error(res, "Only POST requests are allowed!", http.StatusMethodNotAllowed)
 			return
 		}
 

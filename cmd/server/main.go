@@ -30,7 +30,7 @@ func main() {
 	r.Post("/update/{memtype}/{name}/{value}", WithLogging(h.UpdateMem()))
 	r.Get("/value/{memtype}/{name}", WithLogging(h.GetMem()))
 	r.Post("/update/", WithLogging(h.UpdateMemJSON()))
-	r.Get("/value/", WithLogging(h.GetMemJSON()))
+	r.Post("/value/", WithLogging(h.GetMemJSON()))
 	r.Get("/", WithLogging(h.GetAllMems()))
 
 	sugar.Infow("Starting server", "addr", flagAddr)
