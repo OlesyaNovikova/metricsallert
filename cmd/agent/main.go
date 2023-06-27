@@ -99,7 +99,7 @@ func sendMems(mem s.MemStorage) error {
 	return err
 }
 
-func sendJson(adr string, mem j.Metrics) error {
+func sendJSON(adr string, mem j.Metrics) error {
 	body, err := json.Marshal(mem)
 	if err != nil {
 		return err
@@ -123,9 +123,9 @@ func sendJson(adr string, mem j.Metrics) error {
 	return err
 }
 
-func sendMemsJson(mem s.MemStorage) error {
+func sendMemsJSON(mem s.MemStorage) error {
 	var err error
-	str := fmt.Sprintf("http://%s/update", flagAddr)
+	str := fmt.Sprintf("http://%s/update/", flagAddr)
 
 	for name, val := range mem.MemGauge {
 		value := float64(val)
@@ -134,7 +134,7 @@ func sendMemsJson(mem s.MemStorage) error {
 			MType: "gauge",
 			Value: &value,
 		}
-		err = sendJson(str, memJson)
+		err = sendJSON(str, memJson)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -146,7 +146,7 @@ func sendMemsJson(mem s.MemStorage) error {
 			MType: "counter",
 			Delta: &value,
 		}
-		err = sendJson(str, memJson)
+		err = sendJSON(str, memJson)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -168,7 +168,7 @@ func main() {
 		timeT += pollInterval
 		if timeT >= reportInterval {
 			timeT = 0
-			err = sendMemsJson(MemBase)
+			err = sendMemsJSON(MemBase)
 			if err != nil {
 				fmt.Println(err)
 			}

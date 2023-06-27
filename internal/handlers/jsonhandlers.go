@@ -9,7 +9,7 @@ import (
 	j "github.com/OlesyaNovikova/metricsallert.git/internal/json"
 )
 
-func UpdateMemJson() http.HandlerFunc {
+func UpdateMemJSON() http.HandlerFunc {
 	fn := func(res http.ResponseWriter, req *http.Request) {
 
 		if req.Method != http.MethodPost {
@@ -59,7 +59,7 @@ func UpdateMemJson() http.HandlerFunc {
 	return http.HandlerFunc(fn)
 }
 
-func GetMemJson() http.HandlerFunc {
+func GetMemJSON() http.HandlerFunc {
 	fn := func(res http.ResponseWriter, req *http.Request) {
 
 		if req.Method != http.MethodGet {
