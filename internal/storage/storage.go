@@ -28,6 +28,22 @@ func (m *MemStorage) UpdateCounter(name string, value int64) {
 	m.MemCounter[name] += counter(value)
 }
 
+func (m *MemStorage) GetGauge(name string) (value float64, err error) {
+	if val, ok := m.MemGauge[name]; ok {
+		return float64(val), nil
+	}
+	err = fmt.Errorf("metric %v not found", name)
+	return 0, err
+}
+
+func (m *MemStorage) GetCounter(name string) (value int64, err error) {
+	if val, ok := m.MemCounter[name]; ok {
+		return int64(val), nil
+	}
+	err = fmt.Errorf("metric %v not found", name)
+	return 0, err
+}
+
 func (m *MemStorage) GetString(name, memtype string) (value string, err error) {
 
 	err = nil

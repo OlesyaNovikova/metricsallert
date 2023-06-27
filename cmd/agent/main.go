@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -11,6 +12,7 @@ import (
 	"strconv"
 	"time"
 
+	j "github.com/OlesyaNovikova/metricsallert.git/internal/json"
 	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 )
 
@@ -97,6 +99,61 @@ func sendMems(mem s.MemStorage) error {
 	return err
 }
 
+func sendJson(adr string, mem j.Metrics) error {
+	body, err := json.Marshal(mem)
+	if err != nil {
+		return err
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", adr, bytes.NewBuffer(body))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	defer resp.Body.Close()
+	io.Copy(os.Stdout, resp.Body)
+	return err
+}
+
+func sendMemsJson(mem s.MemStorage) error {
+	var err error
+	str := fmt.Sprintf("http://%s/update", flagAddr)
+
+	for name, val := range mem.MemGauge {
+		value := float64(val)
+		memJson := j.Metrics{
+			ID:    name,
+			MType: "gauge",
+			Value: &value,
+		}
+		err = sendJson(str, memJson)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	for name, val := range mem.MemCounter {
+		value := int64(val)
+		memJson := j.Metrics{
+			ID:    name,
+			MType: "counter",
+			Delta: &value,
+		}
+		err = sendJson(str, memJson)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
+	return err
+}
+
 func main() {
 	parseFlags()
 	MemBase := s.NewStorage()
@@ -111,7 +168,7 @@ func main() {
 		timeT += pollInterval
 		if timeT >= reportInterval {
 			timeT = 0
-			err = sendMems(MemBase)
+			err = sendMemsJson(MemBase)
 			if err != nil {
 				fmt.Println(err)
 			}

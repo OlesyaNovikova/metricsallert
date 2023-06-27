@@ -29,6 +29,8 @@ func main() {
 	r := chi.NewRouter()
 	r.Post("/update/{memtype}/{name}/{value}", WithLogging(h.UpdateMem()))
 	r.Get("/value/{memtype}/{name}", WithLogging(h.GetMem()))
+	r.Post("/update", WithLogging(h.UpdateMemJson()))
+	r.Get("/value", WithLogging(h.GetMemJson()))
 	r.Get("/", WithLogging(h.GetAllMems()))
 
 	sugar.Infow("Starting server", "addr", flagAddr)

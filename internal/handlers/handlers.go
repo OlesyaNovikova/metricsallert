@@ -11,6 +11,8 @@ import (
 type MemDataBase interface {
 	UpdateGauge(string, float64)
 	UpdateCounter(string, int64)
+	GetGauge(name string) (value float64, err error)
+	GetCounter(name string) (value int64, err error)
 	GetString(name, memtype string) (value string, err error)
 	GetAll() map[string]string
 }
