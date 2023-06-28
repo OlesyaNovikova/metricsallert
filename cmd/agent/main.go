@@ -38,6 +38,7 @@ func collectMems(Mem *s.MemStorage) error {
 	Mem.UpdateGauge("MCacheInuse", float64(rtm.MCacheInuse))
 	Mem.UpdateGauge("MCacheSys", float64(rtm.MCacheSys))
 	Mem.UpdateGauge("MSpanInuse", float64(rtm.MSpanInuse))
+	Mem.UpdateGauge("MSpanSys", float64(rtm.MSpanSys))
 	Mem.UpdateGauge("Mallocs", float64(rtm.Mallocs))
 	Mem.UpdateGauge("NextGC", float64(rtm.NextGC))
 	Mem.UpdateGauge("NumForcedGC", float64(rtm.NumForcedGC))

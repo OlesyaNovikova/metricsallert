@@ -103,26 +103,31 @@ func GetMemJSON() http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
+		var valF float64
+		var valI int64
 
 		switch mem.MType {
 		case "gauge":
-			val, err := memBase.S.GetGauge(mem.ID)
+			valF, err = memBase.S.GetGauge(mem.ID)
 			if err == nil {
-				mem.Value = &val
+				mem.Value = &valF
+			} else {
+				fmt.Println("Metric not found")
+				res.WriteHeader(http.StatusNotFound)
+				return
 			}
 		case "counter":
-			val, err := memBase.S.GetCounter(mem.ID)
+			valI, err = memBase.S.GetCounter(mem.ID)
 			if err == nil {
-				mem.Delta = &val
+				mem.Delta = &valI
+			} else {
+				fmt.Println("Metric not found")
+				res.WriteHeader(http.StatusNotFound)
+				return
 			}
 		default:
 			fmt.Println("BadRequest-type")
 			res.WriteHeader(http.StatusBadRequest)
-			return
-		}
-		if err != nil {
-			fmt.Println("Metric not found")
-			res.WriteHeader(http.StatusNotFound)
 			return
 		}
 
