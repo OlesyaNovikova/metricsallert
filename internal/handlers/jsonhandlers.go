@@ -97,7 +97,7 @@ func GetMemJSON() http.HandlerFunc {
 			http.Error(res, err.Error(), http.StatusBadRequest)
 			return
 		}
-
+		fmt.Printf("ID %v type %v \n", mem.ID, mem.MType)
 		if mem.ID == "" {
 			fmt.Println("BadRequest-name")
 			res.WriteHeader(http.StatusBadRequest)
@@ -106,9 +106,15 @@ func GetMemJSON() http.HandlerFunc {
 
 		switch mem.MType {
 		case "gauge":
-			*mem.Value, err = memBase.S.GetGauge(mem.ID)
+			val, err := memBase.S.GetGauge(mem.ID)
+			if err == nil {
+				mem.Value = &val
+			}
 		case "counter":
-			*mem.Delta, err = memBase.S.GetCounter(mem.ID)
+			val, err := memBase.S.GetCounter(mem.ID)
+			if err == nil {
+				mem.Delta = &val
+			}
 		default:
 			fmt.Println("BadRequest-type")
 			res.WriteHeader(http.StatusBadRequest)

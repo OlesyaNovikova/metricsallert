@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"strconv"
 	"time"
 
 	j "github.com/OlesyaNovikova/metricsallert.git/internal/json"
@@ -50,58 +49,13 @@ func collectMems(Mem *s.MemStorage) error {
 	Mem.UpdateGauge("Sys", float64(rtm.Sys))
 	Mem.UpdateGauge("TotalAlloc", float64(rtm.TotalAlloc))
 
-	b, _ := json.Marshal(Mem)
-	fmt.Println(string(b))
-
 	return nil
-}
-
-func send(adr string) error {
-	client := &http.Client{}
-	req, err := http.NewRequest("POST", adr, nil)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	req.Header.Add("Content-Type", "text/plain")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	defer resp.Body.Close()
-	io.Copy(os.Stdout, resp.Body)
-	return err
-}
-
-func sendMems(mem s.MemStorage) error {
-	var str string
-	var err error
-	for name, val := range mem.MemGauge {
-		value := strconv.FormatFloat(float64(val), 'f', 5, 64)
-		str = fmt.Sprintf("http://%s/update/gauge/%s/%s", flagAddr, name, value)
-		fmt.Println(str)
-		err = send(str)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-	for name, val := range mem.MemCounter {
-		value := strconv.FormatInt(int64(val), 10)
-		str = fmt.Sprintf("http://%s/update/counter/%s/%s", flagAddr, name, value)
-		fmt.Print(str)
-		err = send(str)
-		if err != nil {
-			fmt.Println(err)
-		}
-	}
-	return err
 }
 
 func sendJSON(adr string, mem j.Metrics) error {
 	body, err := json.Marshal(mem)
 	if err != nil {
+		fmt.Println(err)
 		return err
 	}
 
