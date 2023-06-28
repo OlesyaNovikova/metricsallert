@@ -22,12 +22,18 @@ func UpdateMemJSON() http.HandlerFunc {
 		// читаем тело запроса
 		_, err := inBuf.ReadFrom(req.Body)
 		if err != nil {
-			http.Error(res, err.Error(), http.StatusBadRequest)
+			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
 		// десериализуем JSON в Metrics
 		if err = json.Unmarshal(inBuf.Bytes(), &mem); err != nil {
-			http.Error(res, err.Error(), http.StatusBadRequest)
+			res.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if mem.ID == "" {
+			fmt.Println("BadRequest-name")
+			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
@@ -89,6 +95,12 @@ func GetMemJSON() http.HandlerFunc {
 		// десериализуем JSON в Metrics
 		if err = json.Unmarshal(inBuf.Bytes(), &mem); err != nil {
 			http.Error(res, err.Error(), http.StatusBadRequest)
+			return
+		}
+
+		if mem.ID == "" {
+			fmt.Println("BadRequest-name")
+			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
