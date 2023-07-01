@@ -31,6 +31,7 @@ func GetAllMems() http.HandlerFunc {
 			http.Error(res, "Only GET requests are allowed!", http.StatusMethodNotAllowed)
 			return
 		}
+		res.Header().Set("Content-Type", "text/html")
 		table := memBase.S.GetAll()
 		tpl, err := template.New("table").Parse(tplStr)
 		if err != nil {
@@ -42,7 +43,6 @@ func GetAllMems() http.HandlerFunc {
 			fmt.Println(err)
 			return
 		}
-		res.Header().Set("Content-Type", "text/html")
 	}
 	return http.HandlerFunc(fn)
 }

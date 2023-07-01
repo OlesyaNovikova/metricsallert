@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"time"
 
+	c "github.com/OlesyaNovikova/metricsallert.git/internal/compress"
 	j "github.com/OlesyaNovikova/metricsallert.git/internal/json"
 	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 )
@@ -54,7 +55,12 @@ func collectMems(Mem *s.MemStorage) error {
 }
 
 func sendJSON(adr string, mem j.Metrics) error {
-	body, err := json.Marshal(mem)
+	b, err := json.Marshal(mem)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	body, err := c.CompressGzip(b)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -67,6 +73,7 @@ func sendJSON(adr string, mem j.Metrics) error {
 		return err
 	}
 	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Encoding", "gzip")
 
 	resp, err := client.Do(req)
 	if err != nil {
