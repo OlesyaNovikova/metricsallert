@@ -27,8 +27,8 @@ func main() {
 	h.NewMemRepo(&mem)
 
 	r := chi.NewRouter()
-	r.Post("/update/{memtype}/{name}/{value}", WithLogging(gzipMiddleware(h.UpdateMem())))
-	r.Get("/value/{memtype}/{name}", WithLogging(gzipMiddleware(h.GetMem())))
+	r.Post("/update/{memtype}/{name}/{value}", WithLogging(h.UpdateMem()))
+	r.Get("/value/{memtype}/{name}", WithLogging(h.GetMem()))
 	r.Post("/update/", WithLogging(gzipMiddleware(h.UpdateMemJSON())))
 	r.Post("/value/", WithLogging(gzipMiddleware(h.GetMemJSON())))
 	r.Get("/", WithLogging(gzipMiddleware(h.GetAllMems())))
