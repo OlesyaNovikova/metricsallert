@@ -32,7 +32,9 @@ func GetAllMems() http.HandlerFunc {
 			return
 		}
 		res.Header().Set("Content-Type", "text/html")
+		memBase.mut.Lock()
 		table := memBase.S.GetAll()
+		memBase.mut.Unlock()
 		tpl, err := template.New("table").Parse(tplStr)
 		if err != nil {
 			fmt.Println(err)

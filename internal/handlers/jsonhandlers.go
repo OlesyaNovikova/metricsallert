@@ -30,37 +30,9 @@ func UpdateMemJSON() http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-
-		if mem.ID == "" {
-			fmt.Println("BadRequest-name")
-			res.WriteHeader(http.StatusBadRequest)
-			return
-		}
-
-		switch mem.MType {
-		case "gauge":
-			if mem.Value == nil {
-				fmt.Println("BadRequest-value")
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			memBase.S.UpdateGauge(mem.ID, *mem.Value)
-			*mem.Value, err = memBase.S.GetGauge(mem.ID)
-		case "counter":
-			if mem.Delta == nil {
-				fmt.Println("BadRequest-value")
-				res.WriteHeader(http.StatusBadRequest)
-				return
-			}
-			memBase.S.UpdateCounter(mem.ID, *mem.Delta)
-			*mem.Delta, err = memBase.S.GetCounter(mem.ID)
-		default:
-			fmt.Println("BadRequest-type")
-			res.WriteHeader(http.StatusBadRequest)
-			return
-		}
+		err=updateJSON (mem)
 		if err != nil {
-			http.Error(res, err.Error(), http.StatusInternalServerError)
+			http.Error(res, err.Error(), http.StatusBadRequest)
 			return
 		}
 		resp, err := json.Marshal(mem)
@@ -108,7 +80,9 @@ func GetMemJSON() http.HandlerFunc {
 
 		switch mem.MType {
 		case "gauge":
+			memBase.mut.Lock()
 			valF, err = memBase.S.GetGauge(mem.ID)
+			memBase.mut.Unlock()
 			if err == nil {
 				mem.Value = &valF
 			} else {
@@ -117,7 +91,9 @@ func GetMemJSON() http.HandlerFunc {
 				return
 			}
 		case "counter":
+			memBase.mut.Lock()
 			valI, err = memBase.S.GetCounter(mem.ID)
+			memBase.mut.Unlock()
 			if err == nil {
 				mem.Delta = &valI
 			} else {
@@ -141,4 +117,38 @@ func GetMemJSON() http.HandlerFunc {
 		res.Write(resp)
 	}
 	return http.HandlerFunc(fn)
+}
+
+func updateJSON (mem j.Metrics) error {
+	var err error
+
+	if mem.ID == "" {
+		fmt.Println("BadRequest-name")
+		return fmt.Errorf("BadRequest-name")
+	}
+
+	switch mem.MType {
+	case "gauge":
+		if mem.Value == nil {
+			fmt.Println("BadRequest-value")
+			return fmt.Errorf("BadRequest-value")
+		}
+		memBase.mut.Lock()
+		memBase.S.UpdateGauge(mem.ID, *mem.Value)
+		*mem.Value, err = memBase.S.GetGauge(mem.ID)
+		memBase.mut.Unlock()
+	case "counter":
+		if mem.Delta == nil {
+			fmt.Println("BadRequest-value")
+			return fmt.Errorf("BadRequest-value")
+		}
+		memBase.mut.Lock()
+		memBase.S.UpdateCounter(mem.ID, *mem.Delta)
+		*mem.Delta, err = memBase.S.GetCounter(mem.ID)
+		memBase.mut.Unlock()
+	default:
+		fmt.Println("BadRequest-type")
+		return fmt.Errorf("BadRequest-type")
+	}
+	return err
 }

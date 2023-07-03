@@ -5,6 +5,7 @@ go 1.20
 require (
 	github.com/go-chi/chi/v5 v5.0.8
 	github.com/stretchr/testify v1.8.4
+	github.com/xlab/closer v1.1.0
 	go.uber.org/zap v1.24.0
 )
 

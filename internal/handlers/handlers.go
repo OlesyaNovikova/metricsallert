@@ -4,8 +4,11 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sync"
 
 	chi "github.com/go-chi/chi/v5"
+
+	j "github.com/OlesyaNovikova/metricsallert.git/internal/json"
 )
 
 type MemDataBase interface {
@@ -14,11 +17,13 @@ type MemDataBase interface {
 	GetGauge(name string) (value float64, err error)
 	GetCounter(name string) (value int64, err error)
 	GetString(name, memtype string) (value string, err error)
+	GetAllForJSON() []j.Metrics
 	GetAll() map[string]string
 }
 
 type MemRepo struct {
-	S MemDataBase
+	S   MemDataBase
+	mut sync.Mutex
 }
 
 var memBase MemRepo
@@ -50,7 +55,9 @@ func UpdateMem() http.HandlerFunc {
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
+			memBase.mut.Lock()
 			memBase.S.UpdateGauge(name, val)
+			memBase.mut.Unlock()
 			res.WriteHeader(http.StatusOK)
 			return
 
@@ -61,7 +68,9 @@ func UpdateMem() http.HandlerFunc {
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
+			memBase.mut.Lock()
 			memBase.S.UpdateCounter(name, val)
+			memBase.mut.Unlock()
 			res.WriteHeader(http.StatusOK)
 			return
 		}
@@ -83,7 +92,9 @@ func GetMem() http.HandlerFunc {
 		memtype := chi.URLParam(req, "memtype")
 		name := chi.URLParam(req, "name")
 
+		memBase.mut.Lock()
 		strValue, err := memBase.S.GetString(name, memtype)
+		memBase.mut.Unlock()
 
 		if err != nil {
 			fmt.Println("BadRequest-type")

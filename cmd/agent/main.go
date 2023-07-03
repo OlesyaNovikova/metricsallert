@@ -120,16 +120,18 @@ func main() {
 	parseFlags()
 	MemBase := s.NewStorage()
 	var err error
-	var timeT time.Duration
+	tickerP := time.NewTicker(pollInterval)
+	defer tickerP.Stop()
+	tickerS := time.NewTicker(reportInterval)
+	defer tickerS.Stop()
 	for {
-		err = collectMems(&MemBase)
-		if err != nil {
-			fmt.Println(err)
-		}
-		time.Sleep(pollInterval)
-		timeT += pollInterval
-		if timeT >= reportInterval {
-			timeT = 0
+		select {
+		case <-tickerP.C:
+			err = collectMems(&MemBase)
+			if err != nil {
+				fmt.Println(err)
+			}
+		case <-tickerS.C:
 			err = sendMemsJSON(MemBase)
 			if err != nil {
 				fmt.Println(err)

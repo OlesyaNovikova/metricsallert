@@ -24,7 +24,7 @@ func parseFlags() {
 		flagAddr = envAddr
 	}
 
-	if envR := os.Getenv("REPORT_INTERVAL"); envR != "" {
+	if envR := os.Getenv("POLL_INTERVAL"); envR != "" {
 		if rEnv, err := strconv.Atoi(envR); err == nil {
 			*r = int64(rEnv)
 		}

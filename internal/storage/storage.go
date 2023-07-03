@@ -3,6 +3,8 @@ package storage
 import (
 	"fmt"
 	"strconv"
+
+	j "github.com/OlesyaNovikova/metricsallert.git/internal/json"
 )
 
 type gauge float64
@@ -77,6 +79,29 @@ func (m *MemStorage) GetAll() map[string]string {
 		allMems[name], _ = m.GetString(name, "counter")
 	}
 	return allMems
+}
+
+func (m *MemStorage) GetAllForJSON() []j.Metrics {
+	mems := make([]j.Metrics, 0)
+	for name, val := range m.MemGauge {
+		value := float64(val)
+		mem := j.Metrics{
+			ID:    name,
+			MType: "gauge",
+			Value: &value,
+		}
+		mems = append(mems, mem)
+	}
+	for name, del := range m.MemCounter {
+		delta := int64(del)
+		mem := j.Metrics{
+			ID:    name,
+			MType: "counter",
+			Delta: &delta,
+		}
+		mems = append(mems, mem)
+	}
+	return mems
 }
 
 func (m *MemStorage) Delete(name, memtype string) {
