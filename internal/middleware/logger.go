@@ -1,8 +1,10 @@
-package main
+package middleware
 
 import (
 	"net/http"
 	"time"
+
+	"go.uber.org/zap"
 )
 
 type responseData struct {
@@ -28,7 +30,7 @@ func (r *loggingResponseWriter) WriteHeader(statusCode int) {
 	r.responseData.status = statusCode // захватываем код статуса
 }
 
-func WithLogging(h http.Handler) http.HandlerFunc {
+func WithLogging(sugar zap.SugaredLogger, h http.Handler) http.HandlerFunc {
 	logFn := func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 

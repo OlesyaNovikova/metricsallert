@@ -1,4 +1,4 @@
-package main
+package middleware
 
 import (
 	"compress/gzip"
@@ -69,7 +69,7 @@ func (c *gzipReader) Close() error {
 	return c.zr.Close()
 }
 
-func gzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
+func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	compFn := func(w http.ResponseWriter, r *http.Request) {
 		// проверяем, что клиент отправил серверу сжатые данные в формате gzip
 		sendsGzip := strings.Contains(r.Header.Get("Content-Encoding"), "gzip")

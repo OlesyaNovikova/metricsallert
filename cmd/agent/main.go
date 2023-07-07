@@ -11,9 +11,9 @@ import (
 	"runtime"
 	"time"
 
-	c "github.com/OlesyaNovikova/metricsallert.git/internal/compress"
-	j "github.com/OlesyaNovikova/metricsallert.git/internal/json"
+	j "github.com/OlesyaNovikova/metricsallert.git/internal/models"
 	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
+	c "github.com/OlesyaNovikova/metricsallert.git/internal/utils"
 )
 
 func collectMems(Mem *s.MemStorage) error {
@@ -85,7 +85,7 @@ func sendJSON(adr string, mem j.Metrics) error {
 	return err
 }
 
-func sendMemsJSON(mem s.MemStorage) error {
+func sendMemsJSON(mem *s.MemStorage) error {
 	var err error
 	str := fmt.Sprintf("http://%s/update/", flagAddr)
 
@@ -127,7 +127,7 @@ func main() {
 	for {
 		select {
 		case <-tickerP.C:
-			err = collectMems(&MemBase)
+			err = collectMems(MemBase)
 			if err != nil {
 				fmt.Println(err)
 			}

@@ -3,8 +3,7 @@ package storage
 import (
 	"fmt"
 	"strconv"
-
-	j "github.com/OlesyaNovikova/metricsallert.git/internal/json"
+	"sync"
 )
 
 type gauge float64
@@ -13,21 +12,37 @@ type counter int64
 type MemStorage struct {
 	MemGauge   map[string]gauge
 	MemCounter map[string]counter
+	filePath   string
+	saveInFile bool
+	mut        sync.Mutex
 }
 
-func NewStorage() MemStorage {
-	return MemStorage{
+func NewStorage() *MemStorage {
+	mem := MemStorage{
 		MemGauge:   make(map[string]gauge),
 		MemCounter: make(map[string]counter),
+		filePath:   "",
+		saveInFile: false,
 	}
+	return &mem
 }
 
 func (m *MemStorage) UpdateGauge(name string, value float64) {
 	m.MemGauge[name] = gauge(value)
+	if m.saveInFile {
+		m.mut.Lock()
+		m.writeFileStorage()
+		m.mut.Unlock()
+	}
 }
 
 func (m *MemStorage) UpdateCounter(name string, value int64) {
 	m.MemCounter[name] += counter(value)
+	if m.saveInFile {
+		m.mut.Lock()
+		m.writeFileStorage()
+		m.mut.Unlock()
+	}
 }
 
 func (m *MemStorage) GetGauge(name string) (value float64, err error) {
@@ -46,7 +61,7 @@ func (m *MemStorage) GetCounter(name string) (value int64, err error) {
 	return 0, err
 }
 
-func (m *MemStorage) GetString(name, memtype string) (value string, err error) {
+func (m *MemStorage) getString(name, memtype string) (value string, err error) {
 
 	err = nil
 	switch memtype {
@@ -73,35 +88,12 @@ func (m *MemStorage) GetAll() map[string]string {
 	allMems := make(map[string]string)
 
 	for name := range m.MemGauge {
-		allMems[name], _ = m.GetString(name, "gauge")
+		allMems[name], _ = m.getString(name, "gauge")
 	}
 	for name := range m.MemCounter {
-		allMems[name], _ = m.GetString(name, "counter")
+		allMems[name], _ = m.getString(name, "counter")
 	}
 	return allMems
-}
-
-func (m *MemStorage) GetAllForJSON() []j.Metrics {
-	mems := make([]j.Metrics, 0)
-	for name, val := range m.MemGauge {
-		value := float64(val)
-		mem := j.Metrics{
-			ID:    name,
-			MType: "gauge",
-			Value: &value,
-		}
-		mems = append(mems, mem)
-	}
-	for name, del := range m.MemCounter {
-		delta := int64(del)
-		mem := j.Metrics{
-			ID:    name,
-			MType: "counter",
-			Delta: &delta,
-		}
-		mems = append(mems, mem)
-	}
-	return mems
 }
 
 func (m *MemStorage) Delete(name, memtype string) {
@@ -111,5 +103,10 @@ func (m *MemStorage) Delete(name, memtype string) {
 		delete(m.MemGauge, name)
 	case "counter":
 		delete(m.MemCounter, name)
+	}
+	if m.saveInFile {
+		m.mut.Lock()
+		m.writeFileStorage()
+		m.mut.Unlock()
 	}
 }
