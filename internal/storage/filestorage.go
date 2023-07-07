@@ -54,7 +54,7 @@ func (m *MemStorage) fileStorageRoutine(interval time.Duration) {
 	}
 }
 
-func (m *MemStorage) FileStorageExit (){
+func (m *MemStorage) FileStorageExit() {
 	err := m.writeFileStorage()
 	if err != nil {
 		fmt.Printf("file write error(%v)", err)
@@ -136,26 +136,25 @@ func (m *MemStorage) getAllForJSON() []j.Metrics {
 }
 
 func (m *MemStorage) updateJSON(mem j.Metrics) error {
-	var err error
 
 	if mem.ID == "" {
-		return fmt.Errorf("No name")
+		return fmt.Errorf("no name")
 	}
 
 	switch mem.MType {
 	case "gauge":
 		if mem.Value == nil {
-			return fmt.Errorf("No value")
+			return fmt.Errorf("no value")
 		}
 		m.UpdateGauge(mem.ID, *mem.Value)
 
 	case "counter":
 		if mem.Delta == nil {
-			return fmt.Errorf("No delta")
+			return fmt.Errorf("no delta")
 		}
 		m.UpdateCounter(mem.ID, *mem.Delta)
 	default:
-		return fmt.Errorf("Bad type")
+		return fmt.Errorf("bad type")
 	}
-	return err
+	return nil
 }
