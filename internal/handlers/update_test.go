@@ -30,7 +30,7 @@ func TestUpdateMem(t *testing.T) {
 	}
 
 	mem := s.NewStorage()
-	NewMemRepo(&mem)
+	NewMemRepo(mem)
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
