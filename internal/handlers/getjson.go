@@ -51,6 +51,7 @@ func GetMemJSON() http.HandlerFunc {
 				return
 			}
 		case "counter":
+			valI, err = memBase.S.GetCounter(mem.ID)
 			if err == nil {
 				mem.Delta = &valI
 			} else {
