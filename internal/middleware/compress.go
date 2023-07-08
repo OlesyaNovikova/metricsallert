@@ -24,15 +24,21 @@ func (c *gzipWriter) Header() http.Header {
 	return c.w.Header()
 }
 
-func (c *gzipWriter) Write(p []byte) (int, error) {
-	return c.zw.Write(p)
-}
-
 func (c *gzipWriter) WriteHeader(statusCode int) {
 	if statusCode < 300 {
-		c.w.Header().Set("Content-Encoding", "gzip")
+		contentType := c.Header().Get("Content-Type")
+		if headerCheck(contentType, "application/json") || headerCheck(contentType, "text/html") {
+			c.w.Header().Set("Content-Encoding", "gzip")
+		}
 	}
 	c.w.WriteHeader(statusCode)
+}
+
+func (c *gzipWriter) Write(p []byte) (int, error) {
+	if headerCheck(c.Header().Get("Content-Encoding"), "gzip") {
+		return c.zw.Write(p)
+	}
+	return c.w.Write(p)
 }
 
 // Close закрывает gzip.Writer и досылает все данные из буфера.
@@ -72,8 +78,7 @@ func (c *gzipReader) Close() error {
 func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 	compFn := func(w http.ResponseWriter, r *http.Request) {
 		// проверяем, что клиент отправил серверу сжатые данные в формате gzip
-		sendsGzip := strings.Contains(r.Header.Get("Content-Encoding"), "gzip")
-		if sendsGzip {
+		if headerCheck(r.Header.Get("Content-Encoding"), "gzip") {
 			// оборачиваем тело запроса в io.Reader с поддержкой декомпрессии
 			cr, err := newGzipReader(r.Body)
 			if err != nil {
@@ -84,15 +89,10 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 			r.Body = cr
 			defer cr.Close()
 		}
-		w.Header().Set("Content-Encoding", "gzip")
-
 		// по умолчанию устанавливаем оригинальный http.ResponseWriter
 		ow := w
-
 		// проверяем, что клиент умеет получать от сервера сжатые данные в формате gzip
-		acceptEncoding := r.Header.Get("Accept-Encoding")
-		supportsGzip := strings.Contains(acceptEncoding, "gzip")
-		if supportsGzip {
+		if headerCheck(r.Header.Get("Accept-Encoding"), "gzip") {
 			// оборачиваем оригинальный http.ResponseWriter новым с поддержкой сжатия
 			cw := newGzipWriter(w)
 			// меняем оригинальный http.ResponseWriter на новый
@@ -105,4 +105,15 @@ func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
 
 	}
 	return http.HandlerFunc(compFn)
+}
+
+func headerCheck(str, par string) bool {
+	options := strings.Split(str, ",")
+	for _, option := range options {
+		option = strings.TrimSpace(option)
+		if option == par {
+			return true
+		}
+	}
+	return false
 }
