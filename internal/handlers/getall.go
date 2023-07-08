@@ -39,6 +39,8 @@ func GetAllMems() http.HandlerFunc {
 			http.Error(res, "Internal server error", http.StatusInternalServerError)
 			return
 		}
+		res.Header().Set("Content-Type", "text/html")
+		res.WriteHeader(http.StatusOK)
 		err = tpl.Execute(res, table)
 		if err != nil {
 			fmt.Println(err)
