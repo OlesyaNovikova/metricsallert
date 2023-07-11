@@ -1,5 +1,11 @@
 package handlers
 
+type key int
+
+const (
+	KeyBD key = iota
+)
+
 type MemDataBase interface {
 	UpdateGauge(string, float64)
 	UpdateCounter(string, int64)

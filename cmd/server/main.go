@@ -35,7 +35,7 @@ func main() {
 			panic(err)
 		}
 		defer db.Close()
-		ctx = context.WithValue(ctx, "db", db)
+		ctx = context.WithValue(ctx, h.KeyBD, db)
 	}
 
 	mem, err := s.NewFileStorage(FileStoragePath, Restore, StoreInterval)

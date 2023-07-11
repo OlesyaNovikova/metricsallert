@@ -16,7 +16,7 @@ func PingDB() http.HandlerFunc {
 		}
 
 		ctx := req.Context()
-		dbAny := ctx.Value("db")
+		dbAny := ctx.Value(KeyBD)
 		if db, ok := dbAny.(*sql.DB); ok {
 			err := db.PingContext(ctx)
 			if err != nil {
