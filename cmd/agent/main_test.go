@@ -18,7 +18,7 @@ func TestCollectMems(t *testing.T) {
 	}{
 		{
 			name:     "positive case",
-			wantLenG: 27,
+			wantLenG: 28,
 			wantLenC: 1,
 			wantErr:  nil,
 		},
@@ -26,7 +26,7 @@ func TestCollectMems(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			mem := s.NewStorage()
-			require.Equal(t, test.wantErr, collectMems(&mem))
+			require.Equal(t, test.wantErr, collectMems(mem))
 			assert.Equal(t, test.wantLenG, len(mem.MemGauge))
 			assert.Equal(t, test.wantLenC, len(mem.MemCounter))
 		})

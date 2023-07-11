@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -8,10 +9,11 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"strconv"
 	"time"
 
+	j "github.com/OlesyaNovikova/metricsallert.git/internal/models"
 	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
+	c "github.com/OlesyaNovikova/metricsallert.git/internal/utils"
 )
 
 func collectMems(Mem *s.MemStorage) error {
@@ -37,6 +39,7 @@ func collectMems(Mem *s.MemStorage) error {
 	Mem.UpdateGauge("MCacheInuse", float64(rtm.MCacheInuse))
 	Mem.UpdateGauge("MCacheSys", float64(rtm.MCacheSys))
 	Mem.UpdateGauge("MSpanInuse", float64(rtm.MSpanInuse))
+	Mem.UpdateGauge("MSpanSys", float64(rtm.MSpanSys))
 	Mem.UpdateGauge("Mallocs", float64(rtm.Mallocs))
 	Mem.UpdateGauge("NextGC", float64(rtm.NextGC))
 	Mem.UpdateGauge("NumForcedGC", float64(rtm.NumForcedGC))
@@ -48,20 +51,29 @@ func collectMems(Mem *s.MemStorage) error {
 	Mem.UpdateGauge("Sys", float64(rtm.Sys))
 	Mem.UpdateGauge("TotalAlloc", float64(rtm.TotalAlloc))
 
-	b, _ := json.Marshal(Mem)
-	fmt.Println(string(b))
-
 	return nil
 }
 
-func send(adr string) error {
-	client := &http.Client{}
-	req, err := http.NewRequest("POST", adr, nil)
+func sendJSON(adr string, mem j.Metrics) error {
+	b, err := json.Marshal(mem)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	req.Header.Add("Content-Type", "text/plain")
+	body, err := c.CompressGzip(b)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+
+	client := &http.Client{}
+	req, err := http.NewRequest("POST", adr, bytes.NewBuffer(body))
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	req.Header.Add("Content-Type", "application/json")
+	req.Header.Add("Content-Encoding", "gzip")
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -73,23 +85,30 @@ func send(adr string) error {
 	return err
 }
 
-func sendMems(mem s.MemStorage) error {
-	var str string
+func sendMemsJSON(mem *s.MemStorage) error {
 	var err error
+	str := fmt.Sprintf("http://%s/update/", flagAddr)
+
 	for name, val := range mem.MemGauge {
-		value := strconv.FormatFloat(float64(val), 'f', 5, 64)
-		str = fmt.Sprintf("http://%s/update/gauge/%s/%s", flagAddr, name, value)
-		fmt.Println(str)
-		err = send(str)
+		value := float64(val)
+		memJSON := j.Metrics{
+			ID:    name,
+			MType: "gauge",
+			Value: &value,
+		}
+		err = sendJSON(str, memJSON)
 		if err != nil {
 			fmt.Println(err)
 		}
 	}
 	for name, val := range mem.MemCounter {
-		value := strconv.FormatInt(int64(val), 10)
-		str = fmt.Sprintf("http://%s/update/counter/%s/%s", flagAddr, name, value)
-		fmt.Print(str)
-		err = send(str)
+		value := int64(val)
+		memJSON := j.Metrics{
+			ID:    name,
+			MType: "counter",
+			Delta: &value,
+		}
+		err = sendJSON(str, memJSON)
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -101,17 +120,19 @@ func main() {
 	parseFlags()
 	MemBase := s.NewStorage()
 	var err error
-	var timeT time.Duration
+	tickerP := time.NewTicker(pollInterval)
+	defer tickerP.Stop()
+	tickerS := time.NewTicker(reportInterval)
+	defer tickerS.Stop()
 	for {
-		err = collectMems(&MemBase)
-		if err != nil {
-			fmt.Println(err)
-		}
-		time.Sleep(pollInterval)
-		timeT += pollInterval
-		if timeT >= reportInterval {
-			timeT = 0
-			err = sendMems(MemBase)
+		select {
+		case <-tickerP.C:
+			err = collectMems(MemBase)
+			if err != nil {
+				fmt.Println(err)
+			}
+		case <-tickerS.C:
+			err = sendMemsJSON(MemBase)
 			if err != nil {
 				fmt.Println(err)
 			}
