@@ -20,14 +20,14 @@ func NewPostgresDB(ctx context.Context, db *sql.DB) (*PostgresDB, error) {
 		return nil, err
 	}
 
-	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS "+
-		`gauge("name" varchar(50) UNIQUE,"value" double precision)`)
+	_, err = db.ExecContext(ctx,
+		`CREATE TABLE IF NOT EXISTS gauge("name" varchar(50) UNIQUE,"value" double precision)`)
 	if err != nil {
 		fmt.Printf("Ошибка создания таблицы gauge: %v \n", err)
 		return nil, err
 	}
-	_, err = db.ExecContext(ctx, "CREATE TABLE IF NOT EXISTS "+
-		`counter("name" varchar(50) UNIQUE,"delta" integer)`)
+	_, err = db.ExecContext(ctx,
+		`CREATE TABLE IF NOT EXISTS counter("name" varchar(50) UNIQUE,"delta" integer)`)
 	if err != nil {
 		fmt.Printf("Ошибка создания таблицы counter: %v \n", err)
 		return nil, err
@@ -41,15 +41,17 @@ func NewPostgresDB(ctx context.Context, db *sql.DB) (*PostgresDB, error) {
 }
 
 func (p *PostgresDB) UpdateGauge(ctx context.Context, name string, value float64) error {
-	_, err := p.db.ExecContext(ctx, "INSERT INTO gauge (name, value) VALUES($1,$2)"+
-		" ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value", name, value)
+	_, err := p.db.ExecContext(ctx,
+		`INSERT INTO gauge (name, value) VALUES($1,$2)
+		ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value`, name, value)
 	return err
 }
 
 func (p *PostgresDB) UpdateCounter(ctx context.Context, name string, delta int64) (int64, error) {
-	row := p.db.QueryRowContext(ctx, "INSERT INTO counter AS c (name, delta) VALUES($1,$2)"+
-		" ON CONFLICT (name) DO UPDATE SET delta = c.delta + EXCLUDED.delta"+
-		"RETURNING delta", name, delta)
+	row := p.db.QueryRowContext(ctx,
+		`INSERT INTO counter AS c (name, delta) VALUES($1,$2)
+		ON CONFLICT (name) DO UPDATE SET delta = c.delta + EXCLUDED.delta 
+		RETURNING delta`, name, delta)
 	var val int64
 	err := row.Scan(&val)
 	if err != nil {
