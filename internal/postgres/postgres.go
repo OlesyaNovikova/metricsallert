@@ -105,6 +105,10 @@ func (p *PostgresDB) GetAll(ctx context.Context) (map[string]string, error) {
 		val := strconv.FormatFloat(float64(value), 'f', -1, 64)
 		allMems[name] = val
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
 
 	//запрашиваем таблицу counter
 	rows, err = p.db.QueryContext(ctx, "SELECT * FROM counter")
@@ -120,6 +124,10 @@ func (p *PostgresDB) GetAll(ctx context.Context) (map[string]string, error) {
 		}
 		del := strconv.FormatInt(int64(delta), 10)
 		allMems[name] = del
+	}
+	err = rows.Err()
+	if err != nil {
+		return nil, err
 	}
 
 	return allMems, nil

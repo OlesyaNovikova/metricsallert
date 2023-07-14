@@ -34,6 +34,8 @@ func UpdateMem() http.HandlerFunc {
 			err = memBase.s.UpdateGauge(ctx, name, val)
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
+				fmt.Println(err)
+				return
 			}
 			res.WriteHeader(http.StatusOK)
 			return
@@ -48,6 +50,8 @@ func UpdateMem() http.HandlerFunc {
 			_, err = memBase.s.UpdateCounter(ctx, name, val)
 			if err != nil {
 				res.WriteHeader(http.StatusInternalServerError)
+				fmt.Println(err)
+				return
 			}
 			res.WriteHeader(http.StatusOK)
 			return
