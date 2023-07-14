@@ -1,7 +1,6 @@
 package handlers
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 )
@@ -16,19 +15,13 @@ func PingDB() http.HandlerFunc {
 		}
 
 		ctx := req.Context()
-		dbAny := ctx.Value(KeyBD)
-		if db, ok := dbAny.(*sql.DB); ok {
-			err := db.PingContext(ctx)
-			if err != nil {
-				fmt.Printf("Ошибка соединения с базой: %v \n", err)
-				res.WriteHeader(http.StatusInternalServerError)
-			}
-			fmt.Println("Соединение с базой установлено")
-			res.WriteHeader(http.StatusOK)
-		} else {
-			fmt.Println("Ошибка чтения контекста")
+		err := memBase.s.Ping(ctx)
+		if err != nil {
+			fmt.Printf("Ошибка соединения с базой: %v \n", err)
 			res.WriteHeader(http.StatusInternalServerError)
 		}
+		fmt.Println("Соединение с базой установлено")
+		res.WriteHeader(http.StatusOK)
 
 	}
 	return http.HandlerFunc(fn)

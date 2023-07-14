@@ -12,15 +12,13 @@ import (
 
 	h "github.com/OlesyaNovikova/metricsallert.git/internal/handlers"
 	m "github.com/OlesyaNovikova/metricsallert.git/internal/middleware"
+	p "github.com/OlesyaNovikova/metricsallert.git/internal/postgres"
 	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
 )
 
 func main() {
 
 	parseFlags()
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
 
 	logger, err := zap.NewDevelopment()
 	if err != nil {
@@ -29,30 +27,38 @@ func main() {
 	defer logger.Sync()
 	sugar := *logger.Sugar()
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	if DBAddr != "" {
-		db, err := sql.Open("pgx", DBAddr)
+		base, err := sql.Open("pgx", DBAddr)
 		if err != nil {
 			panic(err)
 		}
-		defer db.Close()
-		ctx = context.WithValue(ctx, h.KeyBD, db)
-	}
-
-	mem, err := s.NewFileStorage(FileStoragePath, Restore, StoreInterval)
-	if err != nil {
-		sugar.Error(err.Error())
+		defer base.Close()
+		db, err := p.NewPostgresDB(ctx, base)
+		if err != nil {
+			panic(err)
+		} else {
+			h.NewMemRepo(db)
+		}
 	} else {
-		closer.Bind(mem.FileStorageExit)
-		defer closer.Close()
+		mem, err := s.NewFileStorage(ctx, FileStoragePath, Restore, StoreInterval)
+		if err != nil {
+			sugar.Error(err.Error())
+		} else {
+			closer.Bind(mem.FileStorageExit)
+			defer closer.Close()
+		}
+		h.NewMemRepo(mem)
 	}
-	h.NewMemRepo(mem)
 
 	r := chi.NewRouter()
-	r.Post("/update/{memtype}/{name}/{value}", m.WithLogging(sugar, h.UpdateMem()))
-	r.Get("/value/{memtype}/{name}", m.WithLogging(sugar, h.GetMem()))
-	r.Post("/update/", m.WithLogging(sugar, m.GzipMiddleware(h.UpdateMemJSON())))
-	r.Post("/value/", m.WithLogging(sugar, m.GzipMiddleware(h.GetMemJSON())))
-	r.Get("/", m.WithLogging(sugar, m.GzipMiddleware(h.GetAllMems())))
+	r.Post("/update/{memtype}/{name}/{value}", m.WithLogging(sugar, m.WithCtx(ctx, h.UpdateMem())))
+	r.Get("/value/{memtype}/{name}", m.WithLogging(sugar, m.WithCtx(ctx, h.GetMem())))
+	r.Post("/update/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.UpdateMemJSON()))))
+	r.Post("/value/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.GetMemJSON()))))
+	r.Get("/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.GetAllMems()))))
 	r.Get("/ping", m.WithLogging(sugar, m.WithCtx(ctx, h.PingDB())))
 
 	sugar.Infow("Starting server", "addr", flagAddr)

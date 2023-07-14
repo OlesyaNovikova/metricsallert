@@ -21,6 +21,8 @@ func UpdateMem() http.HandlerFunc {
 		name := chi.URLParam(req, "name")
 		value := chi.URLParam(req, "value")
 
+		ctx := req.Context()
+
 		switch memtype {
 		case "gauge":
 			val, err := strconv.ParseFloat(value, 64)
@@ -29,7 +31,10 @@ func UpdateMem() http.HandlerFunc {
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			memBase.S.UpdateGauge(name, val)
+			err = memBase.s.UpdateGauge(ctx, name, val)
+			if err != nil {
+				res.WriteHeader(http.StatusInternalServerError)
+			}
 			res.WriteHeader(http.StatusOK)
 			return
 
@@ -40,7 +45,10 @@ func UpdateMem() http.HandlerFunc {
 				res.WriteHeader(http.StatusBadRequest)
 				return
 			}
-			memBase.S.UpdateCounter(name, val)
+			_, err = memBase.s.UpdateCounter(ctx, name, val)
+			if err != nil {
+				res.WriteHeader(http.StatusInternalServerError)
+			}
 			res.WriteHeader(http.StatusOK)
 			return
 		}

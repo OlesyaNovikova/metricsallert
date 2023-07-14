@@ -2,6 +2,7 @@ package storage
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -10,7 +11,7 @@ import (
 	j "github.com/OlesyaNovikova/metricsallert.git/internal/models"
 )
 
-func NewFileStorage(path string, restore bool, interval time.Duration) (*MemStorage, error) {
+func NewFileStorage(ctx context.Context, path string, restore bool, interval time.Duration) (*MemStorage, error) {
 	var err error
 	err = nil
 	mem := NewStorage()
@@ -18,7 +19,7 @@ func NewFileStorage(path string, restore bool, interval time.Duration) (*MemStor
 	if _, err = os.Stat(path); err == nil {
 		mem.filePath = path
 		if restore {
-			err = mem.readFileStorage()
+			err = mem.readFileStorage(ctx)
 		}
 	} else {
 		file, err := os.Create(path)
@@ -31,25 +32,30 @@ func NewFileStorage(path string, restore bool, interval time.Duration) (*MemStor
 	if interval == 0 {
 		mem.saveInFile = true
 	} else {
-		go mem.fileStorageRoutine(interval)
+		go mem.fileStorageRoutine(ctx, interval)
 	}
 
 	return mem, err
 }
 
-func (m *MemStorage) fileStorageRoutine(interval time.Duration) {
+func (m *MemStorage) fileStorageRoutine(ctx context.Context, interval time.Duration) {
 
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()
 
 	for {
-		<-ticker.C
-		m.mut.Lock()
-		err := m.writeFileStorage()
-		m.mut.Unlock()
-		if err != nil {
-			fmt.Printf("file write error(%v)", err)
+		select {
+		case <-ctx.Done():
+			fmt.Println("контекст отменен")
 			return
+		case <-ticker.C:
+			m.mut.Lock()
+			err := m.writeFileStorage()
+			m.mut.Unlock()
+			if err != nil {
+				fmt.Printf("file write error(%v)", err)
+				return
+			}
 		}
 	}
 }
@@ -62,7 +68,7 @@ func (m *MemStorage) FileStorageExit() {
 	}
 }
 
-func (m *MemStorage) readFileStorage() error {
+func (m *MemStorage) readFileStorage(ctx context.Context) error {
 	file, err := os.Open(m.filePath)
 	if err != nil {
 		return err
@@ -77,7 +83,7 @@ func (m *MemStorage) readFileStorage() error {
 		if err != nil {
 			return err
 		}
-		err = m.updateJSON(mem)
+		err = m.updateJSON(ctx, mem)
 		if err != nil {
 			return err
 		}
@@ -135,7 +141,7 @@ func (m *MemStorage) getAllForJSON() []j.Metrics {
 	return mems
 }
 
-func (m *MemStorage) updateJSON(mem j.Metrics) error {
+func (m *MemStorage) updateJSON(ctx context.Context, mem j.Metrics) error {
 
 	if mem.ID == "" {
 		return fmt.Errorf("no name")
@@ -146,13 +152,13 @@ func (m *MemStorage) updateJSON(mem j.Metrics) error {
 		if mem.Value == nil {
 			return fmt.Errorf("no value")
 		}
-		m.UpdateGauge(mem.ID, *mem.Value)
+		m.UpdateGauge(ctx, mem.ID, *mem.Value)
 
 	case "counter":
 		if mem.Delta == nil {
 			return fmt.Errorf("no delta")
 		}
-		m.UpdateCounter(mem.ID, *mem.Delta)
+		m.UpdateCounter(ctx, mem.ID, *mem.Delta)
 	default:
 		return fmt.Errorf("bad type")
 	}

@@ -18,6 +18,7 @@ func GetMemJSON() http.HandlerFunc {
 			return
 		}
 
+		ctx := req.Context()
 		var mem j.Metrics
 		var inBuf bytes.Buffer
 		// читаем тело запроса
@@ -42,7 +43,7 @@ func GetMemJSON() http.HandlerFunc {
 
 		switch mem.MType {
 		case "gauge":
-			valF, err = memBase.S.GetGauge(mem.ID)
+			valF, err = memBase.s.GetGauge(ctx, mem.ID)
 			if err == nil {
 				mem.Value = &valF
 			} else {
@@ -51,7 +52,7 @@ func GetMemJSON() http.HandlerFunc {
 				return
 			}
 		case "counter":
-			valI, err = memBase.S.GetCounter(mem.ID)
+			valI, err = memBase.s.GetCounter(ctx, mem.ID)
 			if err == nil {
 				mem.Delta = &valI
 			} else {
