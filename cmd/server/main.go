@@ -54,8 +54,9 @@ func main() {
 	}
 
 	r := chi.NewRouter()
-	r.Post("/update/{memtype}/{name}/{value}", m.WithLogging(sugar, m.WithCtx(ctx, h.UpdateMem())))
-	r.Get("/value/{memtype}/{name}", m.WithLogging(sugar, m.WithCtx(ctx, h.GetMem())))
+	//r.Post("/update/{memtype}/{name}/{value}", m.WithLogging(sugar, m.WithCtx(ctx, h.UpdateMem())))
+	r.Post("/update/{memtype}/{name}/{value}", m.WithLogging(sugar, h.UpdateMem()))
+	r.Get("/value/{memtype}/{name}", m.WithLogging(sugar, h.GetMem()))
 	r.Post("/update/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.UpdateMemJSON()))))
 	r.Post("/value/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.GetMemJSON()))))
 	r.Get("/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.GetAllMems()))))

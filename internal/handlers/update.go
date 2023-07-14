@@ -16,12 +16,15 @@ func UpdateMem() http.HandlerFunc {
 			http.Error(res, "Only POST requests are allowed!", http.StatusMethodNotAllowed)
 			return
 		}
+		ctx := req.Context()
 
 		memtype := chi.URLParam(req, "memtype")
 		name := chi.URLParam(req, "name")
 		value := chi.URLParam(req, "value")
 
-		ctx := req.Context()
+		fmt.Println(memtype)
+		fmt.Println(name)
+		fmt.Println(value)
 
 		switch memtype {
 		case "gauge":
