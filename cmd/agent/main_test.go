@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -26,7 +27,8 @@ func TestCollectMems(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			mem := s.NewStorage()
-			require.Equal(t, test.wantErr, collectMems(mem))
+			ctx := context.Background()
+			require.Equal(t, test.wantErr, collectMems(ctx, mem))
 			assert.Equal(t, test.wantLenG, len(mem.MemGauge))
 			assert.Equal(t, test.wantLenC, len(mem.MemCounter))
 		})

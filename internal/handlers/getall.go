@@ -31,8 +31,14 @@ func GetAllMems() http.HandlerFunc {
 			http.Error(res, "Only GET requests are allowed!", http.StatusMethodNotAllowed)
 			return
 		}
+		ctx := req.Context()
 		res.Header().Set("Content-Type", "text/html")
-		table := memBase.S.GetAll()
+		table,err := memBase.s.GetAll(ctx)
+		if err != nil {
+			fmt.Println(err)
+			http.Error(res, "Internal server error", http.StatusInternalServerError)
+			return
+		}
 		tpl, err := template.New("table").Parse(tplStr)
 		if err != nil {
 			fmt.Println(err)

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -17,6 +18,9 @@ func UpdateMemJSON() http.HandlerFunc {
 			http.Error(res, "Only POST requests are allowed!", http.StatusMethodNotAllowed)
 			return
 		}
+
+		ctx := req.Context()
+
 		var mem j.Metrics
 		var inBuf bytes.Buffer
 		// читаем тело запроса
@@ -30,14 +34,14 @@ func UpdateMemJSON() http.HandlerFunc {
 			res.WriteHeader(http.StatusBadRequest)
 			return
 		}
-		err = updateJSON(mem)
+		err = updateJSON(ctx, mem)
 		if err != nil {
-			http.Error(res, err.Error(), http.StatusBadRequest)
+			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		resp, err := json.Marshal(mem)
 		if err != nil {
-			http.Error(res, err.Error(), http.StatusInternalServerError)
+			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		res.Header().Set("Content-Type", "application/json")
@@ -47,7 +51,7 @@ func UpdateMemJSON() http.HandlerFunc {
 	return http.HandlerFunc(fn)
 }
 
-func updateJSON(mem j.Metrics) error {
+func updateJSON(ctx context.Context, mem j.Metrics) error {
 	var err error
 
 	if mem.ID == "" {
@@ -61,15 +65,20 @@ func updateJSON(mem j.Metrics) error {
 			fmt.Println("BadRequest-value")
 			return fmt.Errorf("BadRequest-value")
 		}
-		memBase.S.UpdateGauge(mem.ID, *mem.Value)
-		*mem.Value, err = memBase.S.GetGauge(mem.ID)
+		err = memBase.s.UpdateGauge(ctx, mem.ID, *mem.Value)
+		if err != nil {
+			return err
+		}
 	case "counter":
 		if mem.Delta == nil {
 			fmt.Println("BadRequest-value")
 			return fmt.Errorf("BadRequest-value")
 		}
-		memBase.S.UpdateCounter(mem.ID, *mem.Delta)
-		*mem.Delta, err = memBase.S.GetCounter(mem.ID)
+		del, err := memBase.s.UpdateCounter(ctx, mem.ID, *mem.Delta)
+		if err != nil {
+			return err
+		}
+		*mem.Delta = del
 	default:
 		fmt.Println("BadRequest-type")
 		return fmt.Errorf("BadRequest-type")
