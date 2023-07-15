@@ -35,6 +35,7 @@ func Updates() http.HandlerFunc {
 		}
 		err = memBase.s.Updates(ctx, mems)
 		if err != nil {
+			fmt.Println(err)
 			res.WriteHeader(http.StatusInternalServerError)
 			return
 		}

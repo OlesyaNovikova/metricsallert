@@ -32,7 +32,6 @@ func GetMemJSON() http.HandlerFunc {
 			http.Error(res, err.Error(), http.StatusBadRequest)
 			return
 		}
-		fmt.Printf("ID %v type %v \n", mem.ID, mem.MType)
 		if mem.ID == "" {
 			fmt.Println("BadRequest-name")
 			res.WriteHeader(http.StatusBadRequest)
