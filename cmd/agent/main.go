@@ -5,10 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io"
 	"math/rand"
 	"net/http"
-	"os"
 	"runtime"
 	"time"
 
@@ -55,7 +53,7 @@ func collectMems(ctx context.Context, Mem *s.MemStorage) error {
 	return nil
 }
 
-func sendJSON(adr string, mem j.Metrics) error {
+func sendJSON(adr string, mem []j.Metrics) error {
 	b, err := json.Marshal(mem)
 	if err != nil {
 		fmt.Println(err)
@@ -82,13 +80,15 @@ func sendJSON(adr string, mem j.Metrics) error {
 		return err
 	}
 	defer resp.Body.Close()
-	io.Copy(os.Stdout, resp.Body)
+	fmt.Println(resp.StatusCode)
 	return err
 }
 
 func sendMemsJSON(mem *s.MemStorage) error {
 	var err error
-	str := fmt.Sprintf("http://%s/update/", flagAddr)
+	str := fmt.Sprintf("http://%s/updates/", flagAddr)
+
+	allMems := []j.Metrics{}
 
 	for name, val := range mem.MemGauge {
 		value := float64(val)
@@ -97,10 +97,7 @@ func sendMemsJSON(mem *s.MemStorage) error {
 			MType: "gauge",
 			Value: &value,
 		}
-		err = sendJSON(str, memJSON)
-		if err != nil {
-			fmt.Println(err)
-		}
+		allMems = append(allMems, memJSON)
 	}
 	for name, val := range mem.MemCounter {
 		value := int64(val)
@@ -109,10 +106,11 @@ func sendMemsJSON(mem *s.MemStorage) error {
 			MType: "counter",
 			Delta: &value,
 		}
-		err = sendJSON(str, memJSON)
-		if err != nil {
-			fmt.Println(err)
-		}
+		allMems = append(allMems, memJSON)
+	}
+	err = sendJSON(str, allMems)
+	if err != nil {
+		fmt.Println(err)
 	}
 	return err
 }

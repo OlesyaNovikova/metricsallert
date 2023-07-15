@@ -1,6 +1,10 @@
 package handlers
 
-import "context"
+import (
+	"context"
+
+	j "github.com/OlesyaNovikova/metricsallert.git/internal/models"
+)
 
 type MemRepository interface {
 	UpdateGauge(context.Context, string, float64) error
@@ -9,6 +13,7 @@ type MemRepository interface {
 	GetCounter(ctx context.Context, name string) (value int64, err error)
 	GetAll(ctx context.Context) (map[string]string, error)
 	Ping(ctx context.Context) error
+	Updates(ctx context.Context, mems []j.Metrics) error
 }
 
 type MemRepo struct {

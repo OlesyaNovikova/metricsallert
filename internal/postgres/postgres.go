@@ -7,6 +7,8 @@ import (
 	"strconv"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
+
+	j "github.com/OlesyaNovikova/metricsallert.git/internal/models"
 )
 
 type PostgresDB struct {
@@ -141,5 +143,19 @@ func (p *PostgresDB) Ping(ctx context.Context) error {
 		fmt.Printf("Ошибка соединения с базой: %v \n", err)
 		return err
 	}
+	return nil
+}
+
+func (p *PostgresDB) Updates(ctx context.Context, mems []j.Metrics) error {
+	/*row := p.db.QueryRowContext(ctx,
+		`INSERT INTO counter AS c (name, delta) VALUES($1,$2)
+		ON CONFLICT (name) DO UPDATE SET delta = c.delta + EXCLUDED.delta
+		RETURNING delta`, name, delta)
+	var val int64
+	err := row.Scan(&val)
+	if err != nil {
+		fmt.Println(err)
+		return 0, err
+	}*/
 	return nil
 }

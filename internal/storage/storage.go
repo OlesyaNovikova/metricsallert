@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"strconv"
 	"sync"
+
+	j "github.com/OlesyaNovikova/metricsallert.git/internal/models"
 )
 
 type gauge float64
@@ -116,5 +118,20 @@ func (m *MemStorage) Delete(ctx context.Context, name, memtype string) {
 }
 
 func (m *MemStorage) Ping(ctx context.Context) error {
+	return nil
+}
+
+func (m *MemStorage) Updates(ctx context.Context, mems []j.Metrics) error {
+	for _, mem := range mems {
+		err := m.updateJSON(ctx, mem)
+		if err != nil {
+			return err
+		}
+	}
+	if m.saveInFile {
+		m.mut.Lock()
+		m.writeFileStorage()
+		m.mut.Unlock()
+	}
 	return nil
 }

@@ -60,6 +60,7 @@ func main() {
 	r.Post("/value/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.GetMemJSON()))))
 	r.Get("/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.GetAllMems()))))
 	r.Get("/ping", m.WithLogging(sugar, m.WithCtx(ctx, h.PingDB())))
+	r.Post("/updates/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.Updates()))))
 
 	sugar.Infow("Starting server", "addr", flagAddr)
 
