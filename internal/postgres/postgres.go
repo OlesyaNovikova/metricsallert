@@ -147,15 +147,56 @@ func (p *PostgresDB) Ping(ctx context.Context) error {
 }
 
 func (p *PostgresDB) Updates(ctx context.Context, mems []j.Metrics) error {
-	/*row := p.db.QueryRowContext(ctx,
-		`INSERT INTO counter AS c (name, delta) VALUES($1,$2)
-		ON CONFLICT (name) DO UPDATE SET delta = c.delta + EXCLUDED.delta
-		RETURNING delta`, name, delta)
-	var val int64
-	err := row.Scan(&val)
+	if len(mems) == 0 {
+		return nil
+	}
+	tx, err := p.db.Begin()
 	if err != nil {
-		fmt.Println(err)
-		return 0, err
-	}*/
-	return nil
+		return err
+	}
+	defer tx.Rollback()
+
+	stmtGauge, err := tx.PrepareContext(ctx,
+		`INSERT INTO gauge (name, value) VALUES($1,$2)
+		ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value`)
+	if err != nil {
+		return err
+	}
+	defer stmtGauge.Close()
+	stmtCount, err := tx.PrepareContext(ctx,
+		`INSERT INTO counter AS c (name, delta) VALUES($1,$2)
+		ON CONFLICT (name) DO UPDATE SET delta = c.delta + EXCLUDED.delta`)
+	if err != nil {
+		return err
+	}
+	defer stmtCount.Close()
+
+	for _, mem := range mems {
+		if mem.ID == "" {
+			return fmt.Errorf("no name")
+		}
+
+		switch mem.MType {
+		case "gauge":
+			if mem.Value == nil {
+				return fmt.Errorf("no value")
+			}
+			_, err := stmtGauge.ExecContext(ctx, mem.ID, *mem.Value)
+			if err != nil {
+				return err
+			}
+
+		case "counter":
+			if mem.Delta == nil {
+				return fmt.Errorf("no delta")
+			}
+			_, err := stmtCount.ExecContext(ctx, mem.ID, *mem.Delta)
+			if err != nil {
+				return err
+			}
+		default:
+			return fmt.Errorf("bad type")
+		}
+	}
+	return tx.Commit()
 }
