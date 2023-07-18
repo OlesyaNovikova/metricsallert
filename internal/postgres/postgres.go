@@ -33,7 +33,7 @@ func NewPostgresDB(ctx context.Context, db *sql.DB) (*PostgresDB, error) {
 		return nil, err
 	}
 	_, err = db.ExecContext(ctx,
-		`CREATE TABLE IF NOT EXISTS counter("name" varchar(50) UNIQUE,"delta" integer)`)
+		`CREATE TABLE IF NOT EXISTS counter("name" varchar(50) UNIQUE,"delta" bigint)`)
 	if err != nil {
 		fmt.Printf("Ошибка создания таблицы counter: %v \n", err)
 		return nil, err
