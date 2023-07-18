@@ -3,9 +3,13 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"strconv"
+	"time"
 
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	_ "github.com/jackc/pgx/v5/stdlib"
 
 	j "github.com/OlesyaNovikova/metricsallert.git/internal/models"
@@ -43,6 +47,26 @@ func NewPostgresDB(ctx context.Context, db *sql.DB) (*PostgresDB, error) {
 }
 
 func (p *PostgresDB) UpdateGauge(ctx context.Context, name string, value float64) error {
+	var err error = nil
+	delay := 1
+	for i := 0; i < 4; i++ {
+		err = p.updateGauge(ctx, name, value)
+		if err == nil {
+			return err
+		} else {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
+				time.Sleep(time.Duration(delay) * time.Second)
+				delay += 2
+			} else {
+				return err
+			}
+		}
+	}
+	return err
+}
+
+func (p *PostgresDB) updateGauge(ctx context.Context, name string, value float64) error {
 	_, err := p.db.ExecContext(ctx,
 		`INSERT INTO gauge (name, value) VALUES($1,$2)
 		ON CONFLICT (name) DO UPDATE SET value = EXCLUDED.value`, name, value)
@@ -50,6 +74,27 @@ func (p *PostgresDB) UpdateGauge(ctx context.Context, name string, value float64
 }
 
 func (p *PostgresDB) UpdateCounter(ctx context.Context, name string, delta int64) (int64, error) {
+	var err error = nil
+	var val int64
+	delay := 1
+	for i := 0; i < 4; i++ {
+		val, err = p.updateCounter(ctx, name, delta)
+		if err == nil {
+			return val, err
+		} else {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
+				time.Sleep(time.Duration(delay) * time.Second)
+				delay += 2
+			} else {
+				return 0, err
+			}
+		}
+	}
+	return val, err
+}
+
+func (p *PostgresDB) updateCounter(ctx context.Context, name string, delta int64) (int64, error) {
 	row := p.db.QueryRowContext(ctx,
 		`INSERT INTO counter AS c (name, delta) VALUES($1,$2)
 		ON CONFLICT (name) DO UPDATE SET delta = c.delta + EXCLUDED.delta 
@@ -64,6 +109,27 @@ func (p *PostgresDB) UpdateCounter(ctx context.Context, name string, delta int64
 }
 
 func (p *PostgresDB) GetGauge(ctx context.Context, name string) (float64, error) {
+	var err error = nil
+	var val float64
+	delay := 1
+	for i := 0; i < 4; i++ {
+		val, err = p.getGauge(ctx, name)
+		if err == nil {
+			return val, err
+		} else {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
+				time.Sleep(time.Duration(delay) * time.Second)
+				delay += 2
+			} else {
+				return 0, err
+			}
+		}
+	}
+	return val, err
+}
+
+func (p *PostgresDB) getGauge(ctx context.Context, name string) (float64, error) {
 	row := p.db.QueryRowContext(ctx,
 		"SELECT value FROM gauge WHERE name = $1", name)
 	var val float64
@@ -76,6 +142,27 @@ func (p *PostgresDB) GetGauge(ctx context.Context, name string) (float64, error)
 }
 
 func (p *PostgresDB) GetCounter(ctx context.Context, name string) (int64, error) {
+	var err error = nil
+	var val int64
+	delay := 1
+	for i := 0; i < 4; i++ {
+		val, err = p.getCounter(ctx, name)
+		if err == nil {
+			return val, err
+		} else {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
+				time.Sleep(time.Duration(delay) * time.Second)
+				delay += 2
+			} else {
+				return 0, err
+			}
+		}
+	}
+	return val, err
+}
+
+func (p *PostgresDB) getCounter(ctx context.Context, name string) (int64, error) {
 	row := p.db.QueryRowContext(ctx,
 		"SELECT delta FROM counter WHERE name = $1", name)
 	var val int64
@@ -88,6 +175,27 @@ func (p *PostgresDB) GetCounter(ctx context.Context, name string) (int64, error)
 }
 
 func (p *PostgresDB) GetAll(ctx context.Context) (map[string]string, error) {
+	var err error = nil
+	allMems := make(map[string]string)
+	delay := 1
+	for i := 0; i < 4; i++ {
+		allMems, err = p.getAll(ctx)
+		if err == nil {
+			return allMems, err
+		} else {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
+				time.Sleep(time.Duration(delay) * time.Second)
+				delay += 2
+			} else {
+				return nil, err
+			}
+		}
+	}
+	return allMems, err
+}
+
+func (p *PostgresDB) getAll(ctx context.Context) (map[string]string, error) {
 
 	allMems := make(map[string]string)
 	var name string
@@ -138,6 +246,26 @@ func (p *PostgresDB) GetAll(ctx context.Context) (map[string]string, error) {
 }
 
 func (p *PostgresDB) Ping(ctx context.Context) error {
+	var err error = nil
+	delay := 1
+	for i := 0; i < 4; i++ {
+		err = p.ping(ctx)
+		if err == nil {
+			return err
+		} else {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
+				time.Sleep(time.Duration(delay) * time.Second)
+				delay += 2
+			} else {
+				return err
+			}
+		}
+	}
+	return err
+}
+
+func (p *PostgresDB) ping(ctx context.Context) error {
 	err := p.db.PingContext(ctx)
 	if err != nil {
 		fmt.Printf("Ошибка соединения с базой: %v \n", err)
@@ -147,6 +275,26 @@ func (p *PostgresDB) Ping(ctx context.Context) error {
 }
 
 func (p *PostgresDB) Updates(ctx context.Context, mems []j.Metrics) error {
+	var err error = nil
+	delay := 1
+	for i := 0; i < 4; i++ {
+		err = p.updates(ctx, mems)
+		if err == nil {
+			return err
+		} else {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
+				time.Sleep(time.Duration(delay) * time.Second)
+				delay += 2
+			} else {
+				return err
+			}
+		}
+	}
+	return err
+}
+
+func (p *PostgresDB) updates(ctx context.Context, mems []j.Metrics) error {
 	if len(mems) == 0 {
 		return nil
 	}

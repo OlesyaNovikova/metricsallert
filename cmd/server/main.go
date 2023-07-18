@@ -56,11 +56,11 @@ func main() {
 	r := chi.NewRouter()
 	r.Post("/update/{memtype}/{name}/{value}", m.WithLogging(sugar, h.UpdateMem()))
 	r.Get("/value/{memtype}/{name}", m.WithLogging(sugar, h.GetMem()))
-	r.Post("/update/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.UpdateMemJSON()))))
-	r.Post("/value/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.GetMemJSON()))))
-	r.Get("/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.GetAllMems()))))
-	r.Get("/ping", m.WithLogging(sugar, m.WithCtx(ctx, h.PingDB())))
-	r.Post("/updates/", m.WithLogging(sugar, m.WithGzip(m.WithCtx(ctx, h.Updates()))))
+	r.Post("/update/", m.WithLogging(sugar, m.WithGzip(h.UpdateMemJSON())))
+	r.Post("/value/", m.WithLogging(sugar, m.WithGzip(h.GetMemJSON())))
+	r.Get("/", m.WithLogging(sugar, m.WithGzip(h.GetAllMems())))
+	r.Get("/ping", m.WithLogging(sugar, h.PingDB()))
+	r.Post("/updates/", m.WithLogging(sugar, m.WithGzip(h.Updates())))
 
 	sugar.Infow("Starting server", "addr", flagAddr)
 

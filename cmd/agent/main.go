@@ -12,7 +12,7 @@ import (
 
 	j "github.com/OlesyaNovikova/metricsallert.git/internal/models"
 	s "github.com/OlesyaNovikova/metricsallert.git/internal/storage"
-	c "github.com/OlesyaNovikova/metricsallert.git/internal/utils"
+	g "github.com/OlesyaNovikova/metricsallert.git/internal/utils/gzip"
 )
 
 func collectMems(ctx context.Context, Mem *s.MemStorage) error {
@@ -53,13 +53,13 @@ func collectMems(ctx context.Context, Mem *s.MemStorage) error {
 	return nil
 }
 
-func sendJSON(adr string, mem []j.Metrics) error {
+func sendJSON(ctx context.Context, adr string, mem []j.Metrics) error {
 	b, err := json.Marshal(mem)
 	if err != nil {
 		fmt.Println(err)
 		return err
 	}
-	body, err := c.CompressGzip(b)
+	body, err := g.CompressGzip(b)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -74,6 +74,10 @@ func sendJSON(adr string, mem []j.Metrics) error {
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Content-Encoding", "gzip")
 
+	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(10))
+	defer cancel()
+	req = req.WithContext(ctx)
+
 	resp, err := client.Do(req)
 	if err != nil {
 		fmt.Println(err)
@@ -84,7 +88,7 @@ func sendJSON(adr string, mem []j.Metrics) error {
 	return err
 }
 
-func sendMemsJSON(mem *s.MemStorage) error {
+func sendMemsJSON(ctx context.Context, mem *s.MemStorage) error {
 	var err error
 	str := fmt.Sprintf("http://%s/updates/", flagAddr)
 
@@ -108,16 +112,25 @@ func sendMemsJSON(mem *s.MemStorage) error {
 		}
 		allMems = append(allMems, memJSON)
 	}
-	err = sendJSON(str, allMems)
-	if err != nil {
-		fmt.Println(err)
+	delay := 1
+	for i := 0; i < 4; i++ {
+		err = sendJSON(ctx, str, allMems)
+		if err == nil {
+			return err
+		}
+		time.Sleep(time.Duration(delay) * time.Second)
+		delay += 2
 	}
+
+	fmt.Println(err)
 	return err
 }
 
 func main() {
 	parseFlags()
-	ctx := context.Background()
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	MemBase := s.NewStorage()
 	var err error
 	tickerP := time.NewTicker(pollInterval)
@@ -132,7 +145,7 @@ func main() {
 				fmt.Println(err)
 			}
 		case <-tickerS.C:
-			err = sendMemsJSON(MemBase)
+			err = sendMemsJSON(ctx, MemBase)
 			if err != nil {
 				fmt.Println(err)
 			}
