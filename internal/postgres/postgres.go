@@ -26,14 +26,23 @@ func NewPostgresDB(ctx context.Context, db *sql.DB) (*PostgresDB, error) {
 		return nil, err
 	}
 
-	_, err = db.ExecContext(ctx,
-		`CREATE TABLE IF NOT EXISTS gauge("name" varchar(50) UNIQUE,"value" double precision)`)
+	err = retry(ctx,
+		func(ctx context.Context) error {
+			_, err = db.ExecContext(ctx,
+				`CREATE TABLE IF NOT EXISTS gauge("name" varchar(50) UNIQUE,"value" double precision)`)
+			return err
+		})
 	if err != nil {
 		fmt.Printf("Ошибка создания таблицы gauge: %v \n", err)
 		return nil, err
 	}
-	_, err = db.ExecContext(ctx,
-		`CREATE TABLE IF NOT EXISTS counter("name" varchar(50) UNIQUE,"delta" bigint)`)
+
+	err = retry(ctx,
+		func(ctx context.Context) error {
+			_, err = db.ExecContext(ctx,
+				`CREATE TABLE IF NOT EXISTS counter("name" varchar(50) UNIQUE,"delta" bigint)`)
+			return err
+		})
 	if err != nil {
 		fmt.Printf("Ошибка создания таблицы counter: %v \n", err)
 		return nil, err
@@ -47,22 +56,10 @@ func NewPostgresDB(ctx context.Context, db *sql.DB) (*PostgresDB, error) {
 }
 
 func (p *PostgresDB) UpdateGauge(ctx context.Context, name string, value float64) error {
-	var err error = nil
-	delay := 1
-	for i := 0; i < 4; i++ {
-		err = p.updateGauge(ctx, name, value)
-		if err == nil {
-			return err
-		} else {
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
-				time.Sleep(time.Duration(delay) * time.Second)
-				delay += 2
-			} else {
-				return err
-			}
-		}
-	}
+	err := retry(ctx,
+		func(ctx context.Context) error {
+			return p.updateGauge(ctx, name, value)
+		})
 	return err
 }
 
@@ -74,23 +71,13 @@ func (p *PostgresDB) updateGauge(ctx context.Context, name string, value float64
 }
 
 func (p *PostgresDB) UpdateCounter(ctx context.Context, name string, delta int64) (int64, error) {
-	var err error = nil
+	var err error
 	var val int64
-	delay := 1
-	for i := 0; i < 4; i++ {
-		val, err = p.updateCounter(ctx, name, delta)
-		if err == nil {
-			return val, err
-		} else {
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
-				time.Sleep(time.Duration(delay) * time.Second)
-				delay += 2
-			} else {
-				return 0, err
-			}
-		}
-	}
+	err = retry(ctx,
+		func(ctx context.Context) error {
+			val, err = p.updateCounter(ctx, name, delta)
+			return err
+		})
 	return val, err
 }
 
@@ -109,23 +96,13 @@ func (p *PostgresDB) updateCounter(ctx context.Context, name string, delta int64
 }
 
 func (p *PostgresDB) GetGauge(ctx context.Context, name string) (float64, error) {
-	var err error = nil
+	var err error
 	var val float64
-	delay := 1
-	for i := 0; i < 4; i++ {
-		val, err = p.getGauge(ctx, name)
-		if err == nil {
-			return val, err
-		} else {
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
-				time.Sleep(time.Duration(delay) * time.Second)
-				delay += 2
-			} else {
-				return 0, err
-			}
-		}
-	}
+	err = retry(ctx,
+		func(ctx context.Context) error {
+			val, err = p.getGauge(ctx, name)
+			return err
+		})
 	return val, err
 }
 
@@ -142,23 +119,13 @@ func (p *PostgresDB) getGauge(ctx context.Context, name string) (float64, error)
 }
 
 func (p *PostgresDB) GetCounter(ctx context.Context, name string) (int64, error) {
-	var err error = nil
+	var err error
 	var val int64
-	delay := 1
-	for i := 0; i < 4; i++ {
-		val, err = p.getCounter(ctx, name)
-		if err == nil {
-			return val, err
-		} else {
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
-				time.Sleep(time.Duration(delay) * time.Second)
-				delay += 2
-			} else {
-				return 0, err
-			}
-		}
-	}
+	err = retry(ctx,
+		func(ctx context.Context) error {
+			val, err = p.getCounter(ctx, name)
+			return err
+		})
 	return val, err
 }
 
@@ -175,23 +142,13 @@ func (p *PostgresDB) getCounter(ctx context.Context, name string) (int64, error)
 }
 
 func (p *PostgresDB) GetAll(ctx context.Context) (map[string]string, error) {
-	var err error = nil
+	var err error
 	allMems := make(map[string]string)
-	delay := 1
-	for i := 0; i < 4; i++ {
-		allMems, err = p.getAll(ctx)
-		if err == nil {
-			return allMems, err
-		} else {
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
-				time.Sleep(time.Duration(delay) * time.Second)
-				delay += 2
-			} else {
-				return nil, err
-			}
-		}
-	}
+	err = retry(ctx,
+		func(ctx context.Context) error {
+			allMems, err = p.getAll(ctx)
+			return err
+		})
 	return allMems, err
 }
 
@@ -246,22 +203,10 @@ func (p *PostgresDB) getAll(ctx context.Context) (map[string]string, error) {
 }
 
 func (p *PostgresDB) Ping(ctx context.Context) error {
-	var err error = nil
-	delay := 1
-	for i := 0; i < 4; i++ {
-		err = p.ping(ctx)
-		if err == nil {
-			return err
-		} else {
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
-				time.Sleep(time.Duration(delay) * time.Second)
-				delay += 2
-			} else {
-				return err
-			}
-		}
-	}
+	err := retry(ctx,
+		func(ctx context.Context) error {
+			return p.ping(ctx)
+		})
 	return err
 }
 
@@ -275,22 +220,10 @@ func (p *PostgresDB) ping(ctx context.Context) error {
 }
 
 func (p *PostgresDB) Updates(ctx context.Context, mems []j.Metrics) error {
-	var err error = nil
-	delay := 1
-	for i := 0; i < 4; i++ {
-		err = p.updates(ctx, mems)
-		if err == nil {
-			return err
-		} else {
-			var pgErr *pgconn.PgError
-			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
-				time.Sleep(time.Duration(delay) * time.Second)
-				delay += 2
-			} else {
-				return err
-			}
-		}
-	}
+	err := retry(ctx,
+		func(ctx context.Context) error {
+			return p.updates(ctx, mems)
+		})
 	return err
 }
 
@@ -347,4 +280,25 @@ func (p *PostgresDB) updates(ctx context.Context, mems []j.Metrics) error {
 		}
 	}
 	return tx.Commit()
+}
+
+func retry(ctx context.Context, f func(ctx context.Context) error) error {
+	var err error
+	delay := [3]int{1, 3, 5}
+	err = f(ctx)
+	if err != nil {
+		for _, t := range delay {
+			var pgErr *pgconn.PgError
+			if errors.As(err, &pgErr) && pgerrcode.IsConnectionException(pgErr.Code) {
+				time.Sleep(time.Duration(t) * time.Second)
+				err = f(ctx)
+				if err == nil {
+					return err
+				}
+			} else {
+				return err
+			}
+		}
+	}
+	return err
 }
