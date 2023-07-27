@@ -12,6 +12,7 @@ var (
 	StoreInterval   time.Duration
 	FileStoragePath string
 	Restore         bool
+	DBAddr          string
 )
 
 // parseFlags обрабатывает аргументы командной строки
@@ -20,6 +21,7 @@ func parseFlags() {
 	s := flag.Int64("i", 300, "time interval to save to disk")
 	flag.StringVar(&FileStoragePath, "f", "./tmp/metrics-db.json", "file where the current values are saved")
 	flag.BoolVar(&Restore, "r", true, "load previously saved values from the specified file")
+	flag.StringVar(&DBAddr, "d", "", "data base DSN")
 	// парсим переданные серверу аргументы в зарегистрированные переменные
 	flag.Parse()
 
@@ -45,4 +47,8 @@ func parseFlags() {
 		}
 	}
 	StoreInterval = time.Duration(*s) * time.Second
+
+	if envDBAddr := os.Getenv("DATABASE_DSN"); envDBAddr != "" {
+		DBAddr = envDBAddr
+	}
 }

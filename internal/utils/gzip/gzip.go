@@ -1,4 +1,4 @@
-package utils
+package gzip
 
 import (
 	"bytes"

@@ -75,7 +75,7 @@ func (c *gzipReader) Close() error {
 	return c.zr.Close()
 }
 
-func GzipMiddleware(h http.HandlerFunc) http.HandlerFunc {
+func WithGzip(h http.HandlerFunc) http.HandlerFunc {
 	compFn := func(w http.ResponseWriter, r *http.Request) {
 		// проверяем, что клиент отправил серверу сжатые данные в формате gzip
 		if headerCheck(r.Header.Get("Content-Encoding"), "gzip") {

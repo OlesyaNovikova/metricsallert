@@ -1,9 +1,12 @@
 package storage
 
 import (
+	"context"
 	"fmt"
 	"strconv"
 	"sync"
+
+	j "github.com/OlesyaNovikova/metricsallert.git/internal/models"
 )
 
 type gauge float64
@@ -27,25 +30,28 @@ func NewStorage() *MemStorage {
 	return &mem
 }
 
-func (m *MemStorage) UpdateGauge(name string, value float64) {
+func (m *MemStorage) UpdateGauge(ctx context.Context, name string, value float64) error {
 	m.MemGauge[name] = gauge(value)
 	if m.saveInFile {
 		m.mut.Lock()
 		m.writeFileStorage()
 		m.mut.Unlock()
 	}
+	return nil
 }
 
-func (m *MemStorage) UpdateCounter(name string, value int64) {
+func (m *MemStorage) UpdateCounter(ctx context.Context, name string, value int64) (int64, error) {
 	m.MemCounter[name] += counter(value)
 	if m.saveInFile {
 		m.mut.Lock()
 		m.writeFileStorage()
 		m.mut.Unlock()
 	}
+	del := int64(m.MemCounter[name])
+	return del, nil
 }
 
-func (m *MemStorage) GetGauge(name string) (value float64, err error) {
+func (m *MemStorage) GetGauge(ctx context.Context, name string) (value float64, err error) {
 	if val, ok := m.MemGauge[name]; ok {
 		return float64(val), nil
 	}
@@ -53,7 +59,7 @@ func (m *MemStorage) GetGauge(name string) (value float64, err error) {
 	return 0, err
 }
 
-func (m *MemStorage) GetCounter(name string) (value int64, err error) {
+func (m *MemStorage) GetCounter(ctx context.Context, name string) (value int64, err error) {
 	if val, ok := m.MemCounter[name]; ok {
 		return int64(val), nil
 	}
@@ -83,7 +89,7 @@ func (m *MemStorage) getString(name, memtype string) (value string, err error) {
 	return "", err
 }
 
-func (m *MemStorage) GetAll() map[string]string {
+func (m *MemStorage) GetAll(ctx context.Context) (map[string]string, error) {
 
 	allMems := make(map[string]string)
 
@@ -93,10 +99,10 @@ func (m *MemStorage) GetAll() map[string]string {
 	for name := range m.MemCounter {
 		allMems[name], _ = m.getString(name, "counter")
 	}
-	return allMems
+	return allMems, nil
 }
 
-func (m *MemStorage) Delete(name, memtype string) {
+func (m *MemStorage) Delete(ctx context.Context, name, memtype string) {
 
 	switch memtype {
 	case "gauge":
@@ -109,4 +115,23 @@ func (m *MemStorage) Delete(name, memtype string) {
 		m.writeFileStorage()
 		m.mut.Unlock()
 	}
+}
+
+func (m *MemStorage) Ping(ctx context.Context) error {
+	return nil
+}
+
+func (m *MemStorage) Updates(ctx context.Context, mems []j.Metrics) error {
+	for _, mem := range mems {
+		err := m.updateJSON(ctx, mem)
+		if err != nil {
+			return err
+		}
+	}
+	if m.saveInFile {
+		m.mut.Lock()
+		m.writeFileStorage()
+		m.mut.Unlock()
+	}
+	return nil
 }

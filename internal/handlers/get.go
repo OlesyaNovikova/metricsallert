@@ -20,10 +20,12 @@ func GetMem() http.HandlerFunc {
 		memtype := chi.URLParam(req, "memtype")
 		name := chi.URLParam(req, "name")
 
+		ctx := req.Context()
+
 		var strValue string
 		switch memtype {
 		case "gauge":
-			valF, err := memBase.S.GetGauge(name)
+			valF, err := memBase.s.GetGauge(ctx, name)
 			if err != nil {
 				fmt.Println("Metric not found")
 				res.WriteHeader(http.StatusNotFound)
@@ -31,7 +33,7 @@ func GetMem() http.HandlerFunc {
 			}
 			strValue = strconv.FormatFloat(float64(valF), 'f', -1, 64)
 		case "counter":
-			valI, err := memBase.S.GetCounter(name)
+			valI, err := memBase.s.GetCounter(ctx, name)
 			if err != nil {
 				fmt.Println("Metric not found")
 				res.WriteHeader(http.StatusNotFound)
