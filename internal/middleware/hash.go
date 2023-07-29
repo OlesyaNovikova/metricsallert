@@ -6,7 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 )
 
@@ -45,7 +45,7 @@ func WithHash(key []byte, h http.HandlerFunc) http.HandlerFunc {
 			}
 			if !bytes.Equal(sha, nil) {
 				h := hmac.New(sha256.New, key)
-				body, err := ioutil.ReadAll(r.Body)
+				body, err := io.ReadAll(r.Body)
 
 				if err == nil {
 					h.Write(body)
@@ -57,7 +57,7 @@ func WithHash(key []byte, h http.HandlerFunc) http.HandlerFunc {
 						w.WriteHeader(http.StatusBadRequest)
 						return
 					}
-					r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+					r.Body = io.NopCloser(bytes.NewBuffer(body))
 				}
 			}
 			hw := newHashWriter(w, key)

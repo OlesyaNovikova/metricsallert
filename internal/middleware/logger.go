@@ -21,6 +21,9 @@ func (r *loggingResponseWriter) Write(b []byte) (int, error) {
 	// записываем ответ, используя оригинальный http.ResponseWriter
 	size, err := r.ResponseWriter.Write(b)
 	r.responseData.size += size // захватываем размер
+	if r.responseData.status == 0 {
+		r.responseData.status = http.StatusOK
+	}
 	return size, err
 }
 
