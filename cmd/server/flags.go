@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/hex"
 	"flag"
+	"fmt"
 	"os"
 	"strconv"
 	"time"
@@ -56,11 +57,13 @@ func parseFlags() {
 	}
 
 	if envKey := os.Getenv("KEY"); envKey != "" {
+		fmt.Printf("Переменная окружения %v \n", envKey)
 		*k = envKey
 	}
 	if *k != "" {
 		var err error
-		KEY, _ = hex.DecodeString(*k)
+		fmt.Println(*k)
+		KEY, err = hex.DecodeString(*k)
 		if err != nil {
 			panic(err)
 		}
