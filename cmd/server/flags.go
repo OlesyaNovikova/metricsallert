@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/hex"
 	"flag"
 	"fmt"
 	"os"
@@ -61,12 +60,13 @@ func parseFlags() {
 		*k = envKey
 	}
 	if *k != "" {
-		var err error
+		/*var err error
 		fmt.Println(*k)
 		KEY, err = hex.DecodeString(*k)
 		if err != nil {
 			panic(err)
-		}
+		}*/
+		KEY = []byte(*k)
 	}
 
 }
