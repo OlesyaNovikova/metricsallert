@@ -46,7 +46,7 @@ func GetAllMems() http.HandlerFunc {
 			return
 		}
 		res.Header().Set("Content-Type", "text/html")
-		res.WriteHeader(http.StatusOK)
+		//res.WriteHeader(http.StatusOK)
 		err = tpl.Execute(res, table)
 		if err != nil {
 			fmt.Println(err)

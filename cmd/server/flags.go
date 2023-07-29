@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/hex"
 	"flag"
 	"os"
 	"strconv"
@@ -13,6 +14,7 @@ var (
 	FileStoragePath string
 	Restore         bool
 	DBAddr          string
+	KEY             []byte
 )
 
 // parseFlags обрабатывает аргументы командной строки
@@ -22,6 +24,7 @@ func parseFlags() {
 	flag.StringVar(&FileStoragePath, "f", "./tmp/metrics-db.json", "file where the current values are saved")
 	flag.BoolVar(&Restore, "r", true, "load previously saved values from the specified file")
 	flag.StringVar(&DBAddr, "d", "", "data base DSN")
+	k := flag.String("k", "", "key")
 	// парсим переданные серверу аргументы в зарегистрированные переменные
 	flag.Parse()
 
@@ -51,4 +54,16 @@ func parseFlags() {
 	if envDBAddr := os.Getenv("DATABASE_DSN"); envDBAddr != "" {
 		DBAddr = envDBAddr
 	}
+
+	if envKey := os.Getenv("KEY"); envKey != "" {
+		*k = envKey
+	}
+	if *k != "" {
+		var err error
+		KEY, _ = hex.DecodeString(*k)
+		if err != nil {
+			panic(err)
+		}
+	}
+
 }
