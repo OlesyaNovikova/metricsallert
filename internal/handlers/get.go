@@ -53,7 +53,7 @@ func GetMem() http.HandlerFunc {
 		}
 
 		res.Header().Set("Content-Type", "text/plain")
-		res.WriteHeader(http.StatusOK)
+		//res.WriteHeader(http.StatusOK)
 		res.Write([]byte(strValue))
 	}
 	return http.HandlerFunc(fn)

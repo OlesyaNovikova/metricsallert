@@ -71,7 +71,7 @@ func GetMemJSON() http.HandlerFunc {
 			return
 		}
 		res.Header().Set("Content-Type", "application/json")
-		res.WriteHeader(http.StatusOK)
+		//res.WriteHeader(http.StatusOK)
 		res.Write(resp)
 	}
 	return http.HandlerFunc(fn)

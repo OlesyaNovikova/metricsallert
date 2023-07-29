@@ -3,6 +3,9 @@ package main
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"math/rand"
@@ -73,6 +76,14 @@ func sendJSON(ctx context.Context, adr string, mem []j.Metrics) error {
 	}
 	req.Header.Add("Content-Type", "application/json")
 	req.Header.Add("Content-Encoding", "gzip")
+
+	if !bytes.Equal(KEY, nil) {
+		h := hmac.New(sha256.New, KEY)
+		h.Write(body)
+		dst := hex.EncodeToString(h.Sum(nil))
+		fmt.Println(dst)
+		req.Header.Add("HashSHA256", dst)
+	}
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*time.Duration(10))
 	defer cancel()
