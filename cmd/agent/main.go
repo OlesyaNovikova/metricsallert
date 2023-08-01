@@ -10,9 +10,11 @@ import (
 	"math/rand"
 	"net/http"
 	"runtime"
+	"strconv"
 	"sync"
 	"time"
 
+	"github.com/shirou/gopsutil/v3/cpu"
 	"github.com/shirou/gopsutil/v3/mem"
 
 	js "github.com/OlesyaNovikova/metricsallert.git/internal/models"
@@ -52,7 +54,6 @@ func readGopsutil(ctx context.Context, pollInt time.Duration, g chan gauge, snc 
 	defer snc.Done()
 	ticker := time.NewTicker(pollInt)
 	defer ticker.Stop()
-	//proc := runtime.NumCPU()
 
 	for {
 		select {
@@ -65,10 +66,13 @@ func readGopsutil(ctx context.Context, pollInt time.Duration, g chan gauge, snc 
 			}
 			g <- gauge{name: "TotalMemory", value: float64(memInfo.Total)}
 			g <- gauge{name: "FreeMemory", value: float64(memInfo.Free)}
-			/*for p:=1; p<=proc; p++{
-				//а вот тут я совсем никак не смогла найти нужную функцию :'(
-				g <- gauge{name: "CPUutilization"+string(p), value: float64(?????????)}
-			}*/
+			cpuInfo, err := cpu.PercentWithContext(ctx, time.Duration(0), true)
+			if err != nil {
+				return
+			}
+			for p, val := range cpuInfo {
+				g <- gauge{name: "CPUutilization" + strconv.Itoa(p+1), value: val}
+			}
 
 		}
 	}
