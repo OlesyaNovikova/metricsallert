@@ -65,8 +65,11 @@ func readGopsutil(ctx context.Context, pollInt time.Duration, g chan gauge, snc 
 			}
 			g <- gauge{name: "TotalMemory", value: float64(memInfo.Total)}
 			g <- gauge{name: "FreeMemory", value: float64(memInfo.Free)}
+			/*for p:=1; p<=proc; p++{
+				//а вот тут я совсем никак не смогла найти нужную функцию :'(
+				g <- gauge{name: "CPUutilization"+string(p), value: float64(?????????)}
+			}*/
 
-			//g <- gauge{name: , value: }
 		}
 	}
 }
