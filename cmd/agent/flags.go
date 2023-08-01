@@ -13,6 +13,7 @@ var (
 	pollInterval   time.Duration
 	reportInterval time.Duration
 	KEY            []byte
+	rateLimit      int
 )
 
 // parseFlags обрабатывает аргументы командной строки
@@ -21,6 +22,7 @@ func parseFlags() {
 	p := flag.Int64("p", 2, "metric collection interval")
 	r := flag.Int64("r", 10, "metrics sending interval")
 	k := flag.String("k", "", "key")
+	flag.IntVar(&rateLimit, "l", 0, "concurrent request limit")
 	// парсим переданны аргументы в зарегистрированные переменные
 	flag.Parse()
 
@@ -48,12 +50,12 @@ func parseFlags() {
 		*k = envKey
 	}
 	if *k != "" {
-		/*var err error
-		fmt.Println(*k)
-		KEY, err = hex.DecodeString(*k)
-		if err != nil {
-			panic(err)
-		}*/
 		KEY = []byte(*k)
+	}
+
+	if envLim := os.Getenv("RATE_LIMIT"); envLim != "" {
+		if lim, err := strconv.Atoi(envLim); err == nil {
+			rateLimit = lim
+		}
 	}
 }

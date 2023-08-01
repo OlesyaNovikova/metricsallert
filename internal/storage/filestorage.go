@@ -101,7 +101,7 @@ func (m *MemStorage) writeFileStorage() error {
 	}
 	defer file.Close()
 
-	mems := m.getAllForJSON()
+	mems := m.GetAllForJSON()
 
 	for _, mem := range mems {
 		data, err := json.Marshal(&mem)
@@ -118,7 +118,7 @@ func (m *MemStorage) writeFileStorage() error {
 	return nil
 }
 
-func (m *MemStorage) getAllForJSON() []j.Metrics {
+func (m *MemStorage) GetAllForJSON() []j.Metrics {
 	mems := make([]j.Metrics, 0)
 	for name, val := range m.MemGauge {
 		value := float64(val)
