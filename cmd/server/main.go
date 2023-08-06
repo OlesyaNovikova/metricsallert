@@ -62,7 +62,8 @@ func main() {
 	r.Get("/ping", m.WithLogging(sugar, m.WithHash(KEY, h.PingDB())))
 	r.Post("/updates/", m.WithLogging(sugar, m.WithHash(KEY, m.WithGzip(h.Updates()))))
 
-	sugar.Infow("Starting server", "addr", flagAddr)
+	
+	
 
 	err = http.ListenAndServe(flagAddr, r)
 	if err != nil {

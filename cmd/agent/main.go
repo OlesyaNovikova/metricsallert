@@ -150,21 +150,20 @@ func collectMems(ctx context.Context, repInt time.Duration, c chan counter, g ch
 	}
 }
 
-func sendMemsJSON(ctx context.Context, m chan []js.Metrics) error {
-	var err error
+func sendMemsJSON(ctx context.Context, m chan []js.Metrics) {
 	str := fmt.Sprintf("http://%s/updates/", flagAddr)
 
 	for {
 		select {
 		case <-ctx.Done():
 			fmt.Println("end of context")
-			return err
+			return
 		case allMems := <-m:
 			delay := 1
 			for i := 0; i < 4; i++ {
-				err = sendJSON(ctx, str, allMems)
+				err := sendJSON(ctx, str, allMems)
 				if err == nil {
-					return err
+					break
 				}
 				time.Sleep(time.Duration(delay) * time.Second)
 				delay += 2
