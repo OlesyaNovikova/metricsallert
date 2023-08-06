@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"compress/gzip"
+	"fmt"
 	"io"
 	"net/http"
 	"strings"
@@ -9,36 +10,24 @@ import (
 
 // gzipsWriter реализует интерфейс http.ResponseWriter
 type gzipWriter struct {
-	w  http.ResponseWriter
+	http.ResponseWriter
 	zw *gzip.Writer
 }
 
 func newGzipWriter(w http.ResponseWriter) *gzipWriter {
 	return &gzipWriter{
-		w:  w,
-		zw: gzip.NewWriter(w),
+		ResponseWriter: w,
+		zw:             gzip.NewWriter(w),
 	}
-}
-
-func (c *gzipWriter) Header() http.Header {
-	return c.w.Header()
-}
-
-func (c *gzipWriter) WriteHeader(statusCode int) {
-	if statusCode < 300 {
-		contentType := c.Header().Get("Content-Type")
-		if headerCheck(contentType, "application/json") || headerCheck(contentType, "text/html") {
-			c.w.Header().Set("Content-Encoding", "gzip")
-		}
-	}
-	c.w.WriteHeader(statusCode)
 }
 
 func (c *gzipWriter) Write(p []byte) (int, error) {
-	if headerCheck(c.Header().Get("Content-Encoding"), "gzip") {
+	contentType := c.Header().Get("Content-Type")
+	if headerCheck(contentType, "application/json") || headerCheck(contentType, "text/html") {
+		c.Header().Set("Content-Encoding", "gzip")
 		return c.zw.Write(p)
 	}
-	return c.w.Write(p)
+	return c.ResponseWriter.Write(p)
 }
 
 // Close закрывает gzip.Writer и досылает все данные из буфера.
@@ -82,6 +71,7 @@ func WithGzip(h http.HandlerFunc) http.HandlerFunc {
 			// оборачиваем тело запроса в io.Reader с поддержкой декомпрессии
 			cr, err := newGzipReader(r.Body)
 			if err != nil {
+				fmt.Println(err)
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
